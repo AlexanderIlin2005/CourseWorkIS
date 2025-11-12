@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'war'
     id 'application'
-    id 'com.github.johnngelman.shadow' version '8.1.1'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' // для fat jar
 }
 
 application {
