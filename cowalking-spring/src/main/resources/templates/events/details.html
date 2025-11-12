@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${event.title} + ' - CoWalking'">Event Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <a href="/" class="logo">CoWalking</a>
+                <ul class="nav-menu">
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="/locations">Locations</a></li>
+                    <li th:if="${#authentication.principal != null}">
+                        <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
+                    </li>
+                    <li th:if="${#authentication.principal != null}">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                    <li th:if="${#authentication.principal == null}">
+                        <a href="/login">Login</a>
+                    </li>
+                    <li th:if="${#authentication.principal == null}">
+                        <a href="/registration">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1 th:text="${event.title}">Event Title</h1>
+            
+            <div class="event-details">
+                <p><strong>Description:</strong> <span th:text="${event.description}">Description</span></p>
+                <p><strong>Location:</strong> <span th:text="${event.location.name} + ' (' + ${event.location.address} + ')'">Location</span></p>
+                <p><strong>Start Time:</strong> <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
+                <p><strong>End Time:</strong> <span th:text="${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}">End Time</span></p>
+                <p><strong>Participants:</strong> <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                <p><strong>Organizer:</strong> <span th:text="${event.organizer.username}">Organizer</span></p>
+            </div>
+            
+            <div th:if="${#authentication.principal != null && #authentication.principal.id != event.organizer.id}">
+                <form th:action="@{/participations/join/{eventId}(eventId=${event.id})}" method="post">
+                    <button type="submit" class="btn-primary">Join Event</button>
+                </form>
+            </div>
+            
+            <div th:if="${#authentication.principal != null && #authentication.principal.id == event.organizer.id}">
+                <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn-secondary">Edit Event</a>
+                
+                <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this event?')">Delete Event</button>
+                </form>
+            </div>
+            
+            <div th:if="${#authentication.principal != null && #authentication.principal.id != event.organizer.id}">
+                <form th:action="@{/participations/leave/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-secondary" onclick="return confirm('Are you sure you want to leave this event?')">Leave Event</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

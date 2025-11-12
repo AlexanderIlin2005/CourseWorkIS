@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - CoWalking</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <a href="/" class="logo">CoWalking</a>
+                <ul class="nav-menu">
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="/locations">Locations</a></li>
+                    <li th:if="${#authentication.principal != null}">
+                        <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
+                    </li>
+                    <li th:if="${#authentication.principal != null}">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                    <li th:if="${#authentication.principal == null}">
+                        <a href="/login">Login</a>
+                    </li>
+                    <li th:if="${#authentication.principal == null}">
+                        <a href="/registration">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Events</h1>
+            
+            <div th:if="${#authentication.principal != null}">
+                <a href="/events/create" class="btn-primary">Create Event</a>
+            </div>
+            
+            <div class="events-grid">
+                <div class="event-card" th:each="event : ${events}">
+                    <h3 th:text="${event.title}">Event Title</h3>
+                    <p th:text="${event.description}">Event Description</p>
+                    <p>Location: <span th:text="${event.location.name}">Location Name</span></p>
+                    <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
+                    <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                    <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

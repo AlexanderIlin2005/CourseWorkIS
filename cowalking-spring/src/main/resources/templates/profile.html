@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - CoWalking</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <a href="/" class="logo">CoWalking</a>
+                <ul class="nav-menu">
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="/locations">Locations</a></li>
+                    <li><a href="/users/profile">Profile</a></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Profile</h1>
+
+            <div th:if="${message}" class="success" th:text="${message}">Success message</div>
+            <div th:if="${error}" class="error" th:text="${error}">Error message</div>
+
+            <form th:action="@{/users/update}" method="post" th:object="${user}">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" th:field="*{username}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role:</label>
+                    <input type="text" id="role" th:value="*{role}" readonly>
+                </div>
+
+                <button type="submit" class="btn-primary">Update Profile</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
