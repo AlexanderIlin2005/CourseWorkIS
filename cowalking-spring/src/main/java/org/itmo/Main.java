@@ -16,6 +16,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URL;
 
+// --- Исправлен импорт ---
+import org.eclipse.jetty.servlet.ServletContextHandler;
+// --- Конец исправленного импорта ---
+import org.eclipse.jetty.servlet.ServletHolder;
+
 public class Main {
 
     private static final int START_PORT = 8080;
@@ -57,6 +62,7 @@ public class Main {
                         }}
                 );
 
+        // --- Исправлено: используем правильный класс ServletContextHandler ---
         ServletContextHandler servletContextHandler = new ServletContextHandler(server, "/");
         servletContextHandler.addServlet(new ServletHolder(dispatcherServlet), "/");
         servletContextHandler.addEventListener(new ServletContextListener() {
@@ -68,7 +74,7 @@ public class Main {
             }
         });
 
-        server.setHandler(context);
+        server.setHandler(servletContextHandler);
 
         server.start();
         server.join();

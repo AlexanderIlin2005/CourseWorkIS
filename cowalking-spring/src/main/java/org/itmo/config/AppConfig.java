@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
+import org.springframework.orm.jpa.JpaTransactionManager; // Добавлен импорт
+import org.springframework.transaction.PlatformTransactionManager; // Добавлен импорт
 
 @Configuration
 @EnableJpaRepositories(basePackages = "org.itmo.repository")
