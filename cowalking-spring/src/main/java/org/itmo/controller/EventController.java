@@ -3,6 +3,7 @@ package org.itmo.controller;
 import org.itmo.dto.EventDto;
 import org.itmo.model.Event;
 import org.itmo.model.User;
+import org.itmo.model.enums.EventStatus; // <-- Добавьте этот импорт
 import org.itmo.service.EventService;
 import org.itmo.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ public class EventController {
         event.setStartTime(eventDto.getStartTime());
         event.setEndTime(eventDto.getEndTime());
         event.setMaxParticipants(eventDto.getMaxParticipants());
-        event.setStatus(Event.EventStatus.ACTIVE);
+        event.setStatus(EventStatus.ACTIVE); // <-- Используйте импортированный enum
 
         try {
             Event savedEvent = eventService.save(event, currentUser);
@@ -67,7 +68,7 @@ public class EventController {
     @GetMapping("/{id}")
     public String eventDetails(@PathVariable Long id, Model model) {
         Event event = eventService.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found"));
         model.addAttribute("event", event);
         return "events/details";
     }
@@ -75,13 +76,13 @@ public class EventController {
     @GetMapping("/{id}/edit")
     public String editEventForm(@PathVariable Long id, Model model) {
         Event event = eventService.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found"));
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
 
         // Check if user is organizer or admin
         if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
-            !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+                !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
             return "redirect:/events/" + id;
         }
 
@@ -94,13 +95,13 @@ public class EventController {
     @PostMapping("/{id}/edit")
     public String editEvent(@PathVariable Long id, @ModelAttribute EventDto eventDto, Model model) {
         Event event = eventService.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found"));
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
 
         // Check if user is organizer or admin
         if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
-            !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+                !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
             return "redirect:/events/" + id;
         }
 

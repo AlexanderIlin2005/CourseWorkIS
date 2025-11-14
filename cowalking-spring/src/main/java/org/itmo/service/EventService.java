@@ -2,6 +2,7 @@ package org.itmo.service;
 
 import org.itmo.model.Event;
 import org.itmo.model.User;
+import org.itmo.model.enums.EventStatus; // <-- Добавьте этот импорт
 import org.itmo.model.enums.UserRole;
 import org.itmo.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class EventService {
         return eventRepository.findByOrganizerId(organizerId);
     }
 
-    public List<Event> findByStatus(Event.EventStatus status) {
+    public List<Event> findByStatus(EventStatus status) { // <-- Используйте импортированный enum
         return eventRepository.findByStatus(status);
     }
 
@@ -37,7 +38,7 @@ public class EventService {
     public Event save(Event event, User currentUser) {
         // Check if user is organizer or admin
         if (!currentUser.getRole().equals(UserRole.ORGANIZER) &&
-            !currentUser.getRole().equals(UserRole.ADMIN)) {
+                !currentUser.getRole().equals(UserRole.ADMIN)) {
             throw new SecurityException("Only organizers and admins can create events");
         }
 
@@ -47,9 +48,9 @@ public class EventService {
         } else {
             // For updates, ensure the current user is the organizer or admin
             Event existingEvent = eventRepository.findById(event.getId())
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                    .orElseThrow(() -> new RuntimeException("Event not found"));
             if (!existingEvent.getOrganizer().getId().equals(currentUser.getId()) &&
-                !currentUser.getRole().equals(UserRole.ADMIN)) {
+                    !currentUser.getRole().equals(UserRole.ADMIN)) {
                 throw new SecurityException("You can only edit events you organized");
             }
             event.setOrganizer(existingEvent.getOrganizer());
@@ -61,10 +62,10 @@ public class EventService {
     @Transactional
     public void deleteById(Long id, User currentUser) {
         Event event = eventRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new RuntimeException("Event not found"));
 
         if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
-            !currentUser.getRole().equals(UserRole.ADMIN)) {
+                !currentUser.getRole().equals(UserRole.ADMIN)) {
             throw new SecurityException("You can only delete events you organized");
         }
 

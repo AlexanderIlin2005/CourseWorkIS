@@ -3,7 +3,8 @@ package org.itmo.model;
 
 import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import org.itmo.model.converters.ZonedDateTimeConverter; // Импортируем конвертер
-import org.itmo.model.enums.EventStatus;
+import org.itmo.model.enums.EventStatus; // <-- Добавьте этот импорт
+import org.itmo.model.enums.UserRole; // Проверьте, что этот импорт тоже есть
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,7 +38,6 @@ public class Event {
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
 
-    // --- Используем кастомный конвертер для ZonedDateTime ---
     @Convert(converter = ZonedDateTimeConverter.class)
     @Column(name = "start_time", nullable = false)
     private ZonedDateTime startTime;
@@ -45,7 +45,6 @@ public class Event {
     @Convert(converter = ZonedDateTimeConverter.class)
     @Column(name = "end_time", nullable = false)
     private ZonedDateTime endTime;
-    // --- Конец изменений ---
 
     @Column(name = "max_participants")
     private Integer maxParticipants;
@@ -53,7 +52,6 @@ public class Event {
     @Column(name = "current_participants", nullable = false)
     private Integer currentParticipants = 0;
 
-    // --- Используем кастомный конвертер для LocalDateTime ---
     @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -61,8 +59,7 @@ public class Event {
     @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
-    // --- Конец изменений ---
 
-    @Enumerated(EnumType.STRING)
-    private EventStatus status = EventStatus.ACTIVE;
+    @Enumerated(EnumType.STRING) // <-- Убедитесь, что аннотация стоит
+    private EventStatus status = EventStatus.ACTIVE; // <-- Используем импортированный enum
 }

@@ -28,16 +28,14 @@ public class Participation {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    // --- Используем кастомный конвертер ---
     @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "joined_at")
     private LocalDateTime joinedAt = LocalDateTime.now();
-    // --- Конец изменений ---
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private ParticipationStatus status = ParticipationStatus.PENDING;
+    @Enumerated(EnumType.STRING) // <-- Убедитесь, что аннотация стоит
+    private ParticipationStatus status = ParticipationStatus.PENDING; // <-- Предполагается, что enum определен
 
+    // Определение enum внутри класса
     public enum ParticipationStatus {
         PENDING, CONFIRMED, CANCELLED
     }
