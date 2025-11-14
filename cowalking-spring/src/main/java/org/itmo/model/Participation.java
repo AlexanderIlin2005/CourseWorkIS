@@ -1,5 +1,7 @@
+// src/main/java/org/itmo/model/Participation.java
 package org.itmo.model;
 
+import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,8 +28,11 @@ public class Participation {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @Column(name = "joined_at",  columnDefinition = "TIMESTAMP")
+    // --- Используем кастомный конвертер ---
+    @Convert(converter = LocalDateTimeConverter.class)
+    @Column(name = "joined_at")
     private LocalDateTime joinedAt = LocalDateTime.now();
+    // --- Конец изменений ---
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)

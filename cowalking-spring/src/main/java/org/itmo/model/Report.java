@@ -1,5 +1,7 @@
+// src/main/java/org/itmo/model/Report.java
 package org.itmo.model;
 
+import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,11 +35,15 @@ public class Report {
     @Column(nullable = false, length = 1000)
     private String reason;
 
+    // --- Используем кастомный конвертер ---
+    @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
+    // --- Конец изменений ---
 
     @Column(name = "is_resolved", nullable = false)
     private Boolean isResolved = false;

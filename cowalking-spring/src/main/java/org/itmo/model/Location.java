@@ -1,5 +1,7 @@
+// src/main/java/org/itmo/model/Location.java
 package org.itmo.model;
 
+import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,9 +33,13 @@ public class Location {
     @Column(length = 1000)
     private String description;
 
-    @Column(name = "created_at",  columnDefinition = "TIMESTAMP")
+    // --- Используем кастомный конвертер ---
+    @Convert(converter = LocalDateTimeConverter.class)
+    @Column(name = "created_at")
     private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
 
-    @Column(name = "updated_at",  columnDefinition = "TIMESTAMP")
+    @Convert(converter = LocalDateTimeConverter.class)
+    @Column(name = "updated_at")
     private java.time.LocalDateTime updatedAt = java.time.LocalDateTime.now();
+    // --- Конец изменений ---
 }
