@@ -1,5 +1,6 @@
 /cowalking-spring/build/
 /cowalking-spring/.gradle/
 .idea
+.idea/
 full_tree.sh
 
