@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Entity
-@Table(name = "users")
+@Table(name = "cowalking_users")
 @Getter
 @Setter
 @NoArgsConstructor

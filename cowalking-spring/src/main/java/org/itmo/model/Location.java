@@ -6,7 +6,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "locations")
+@Table(name = "cowalking_locations")
 @Getter
 @Setter
 @NoArgsConstructor

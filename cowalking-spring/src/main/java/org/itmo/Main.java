@@ -1,12 +1,10 @@
 package org.itmo;
 
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.ServletException;
 import org.itmo.config.AppConfig;
 import org.itmo.config.SecurityConfig;
@@ -14,12 +12,11 @@ import org.itmo.config.WebConfig;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.URL;
 
 // --- Исправлен импорт ---
 import org.eclipse.jetty.servlet.ServletContextHandler;
-// --- Конец исправленного импорта ---
 import org.eclipse.jetty.servlet.ServletHolder;
+// --- Конец исправленного импорта ---
 
 public class Main {
 
@@ -35,46 +32,27 @@ public class Main {
 
         Server server = new Server(port);
 
-        WebAppContext context = new WebAppContext();
+        // --- Используем ServletContextHandler ---
+        ServletContextHandler context = new ServletContextHandler(server, "/");
         context.setContextPath("/");
 
-        // Указываем путь к ресурсам (шаблонам, статике), где Spring Boot обычно их ищет
-        URL resourceUrl = Main.class.getClassLoader().getResource("/");
-        if (resourceUrl != null) {
-            context.setResourceBase(resourceUrl.toURI().toString());
-        } else {
-            // Резервный путь, если ресурсы не найдены как ресурсы класслоадера
-            context.setResourceBase("./src/main/resources");
-        }
-
-        // Настройка Spring Context
+        // 1. Создаем и регистрируем корневой контекст (root context) через ContextLoaderListener
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
         rootContext.register(AppConfig.class, SecurityConfig.class);
-
+        // Обратите внимание: refresh() вызывается автоматически ContextLoaderListener при инициализации
         context.addEventListener(new ContextLoaderListener(rootContext));
 
-        // Регистрация Spring MVC DispatcherServlet
-        org.springframework.web.servlet.DispatcherServlet dispatcherServlet =
-                new org.springframework.web.servlet.DispatcherServlet(
-                        new AnnotationConfigWebApplicationContext() {{
-                            register(WebConfig.class);
-                            setParent(rootContext);
-                        }}
-                );
+        // 2. Создаем веб-контекст (web context) и устанавливаем ему родителя (корневой контекст)
+        AnnotationConfigWebApplicationContext webContext = new AnnotationConfigWebApplicationContext();
+        webContext.register(WebConfig.class); // Регистрируем веб-конфигурацию
+        webContext.setParent(rootContext); // Устанавливаем иерархию контекстов
+        // ВАЖНО: НЕ вызываем refresh() здесь! DispatcherServlet сделает это сам.
 
-        // --- Исправлено: используем правильный класс ServletContextHandler ---
-        ServletContextHandler servletContextHandler = new ServletContextHandler(server, "/");
-        servletContextHandler.addServlet(new ServletHolder(dispatcherServlet), "/");
-        servletContextHandler.addEventListener(new ServletContextListener() {
-            @Override
-            public void contextInitialized(ServletContextEvent sce) {
-                ServletContext ctx = sce.getServletContext();
-                // Убедимся, что Spring Context инициализирован правильно
-                ctx.setAttribute("org.springframework.web.context.WebApplicationContext.ROOT", rootContext);
-            }
-        });
+        // 3. Создаем DispatcherServlet и передаем ему веб-контекст
+        DispatcherServlet dispatcherServlet = new DispatcherServlet(webContext);
 
-        server.setHandler(servletContextHandler);
+        ServletHolder servletHolder = new ServletHolder(dispatcherServlet);
+        context.addServlet(servletHolder, "/"); // Маппим на корень
 
         server.start();
         server.join();

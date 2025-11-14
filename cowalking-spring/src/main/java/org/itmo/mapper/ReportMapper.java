@@ -19,7 +19,7 @@ public interface ReportMapper {
     @Mapping(source = "eventId", target = "event", qualifiedByName = "mapEventByIdForReport") // Уникальное имя
     Report toReport(ReportDto reportDto);
 
-    // Уникальные имена для избежания конфликта
+    // Уникальные имена для избежания конфликта 
     @Named("mapUserByIdForReport")
     default org.itmo.model.User mapUserByIdForReport(Long id) {
         if (id == null) {

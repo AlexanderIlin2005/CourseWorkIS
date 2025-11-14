@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name = "events")
+@Table(name = "cowalking_events")
 @Getter
 @Setter
 @NoArgsConstructor

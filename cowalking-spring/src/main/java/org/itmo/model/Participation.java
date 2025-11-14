@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "participations")
+@Table(name = "cowalking_participations")
 @Getter
 @Setter
 @NoArgsConstructor
