@@ -38,10 +38,10 @@ public class User implements UserDetails {
 
     private boolean active = true;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at",  columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",  columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Override

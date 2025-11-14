@@ -26,7 +26,7 @@ public class Participation {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @Column(name = "joined_at")
+    @Column(name = "joined_at",  columnDefinition = "TIMESTAMP")
     private LocalDateTime joinedAt = LocalDateTime.now();
 
     @Column(name = "status")

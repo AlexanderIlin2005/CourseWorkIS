@@ -31,9 +31,9 @@ public class Location {
     @Column(length = 1000)
     private String description;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at",  columnDefinition = "TIMESTAMP")
     private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",  columnDefinition = "TIMESTAMP")
     private java.time.LocalDateTime updatedAt = java.time.LocalDateTime.now();
 }

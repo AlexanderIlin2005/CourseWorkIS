@@ -45,10 +45,10 @@ public class Event {
     @Column(name = "current_participants", nullable = false)
     private Integer currentParticipants = 0;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at",  columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at",  columnDefinition = "TIMESTAMP")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
