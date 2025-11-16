@@ -1,3 +1,4 @@
+// src/main/java/org/itmo/controller/ParticipationController.java
 package org.itmo.controller;
 
 import org.itmo.model.User;
@@ -8,17 +9,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/participations")
 public class ParticipationController {
 
     @Autowired
     private ParticipationService participationService;
 
-    @PostMapping("/join/{eventId}")
+    @PostMapping("/participations/join/{eventId}")
     public String joinEvent(@PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
@@ -33,7 +32,7 @@ public class ParticipationController {
         return "redirect:/events/" + eventId;
     }
 
-    @PostMapping("/leave/{eventId}")
+    @PostMapping("/participations/leave/{eventId}")
     public String leaveEvent(@PathVariable Long eventId, RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
