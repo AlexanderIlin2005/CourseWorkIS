@@ -12,49 +12,37 @@ import org.springframework.security.config.annotation.web.configurers.LogoutConf
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.filter.DelegatingFilterProxy; // <-- Добавьте импорт
-import jakarta.servlet.Filter; // <-- Добавьте импорт
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService;
+    private UserService userService; // Сервис для UserDetailsService
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; // Сервис для PasswordEncoder
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return userService;
+        return userService; // Возвращаем ваш UserService
     }
 
-    // Убедитесь, что имя метода @Bean -- 'filterChain'
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**").permitAll() // Разрешаем доступ
+                        .anyRequest().authenticated() // Все остальные требуют аутентификации
                 )
-                .formLogin((form) -> form // Используем formLogin
+                .formLogin((form) -> form
                         .loginPage("/login") // Указываем страницу логина
                         .permitAll() // Разрешаем всем доступ к странице логина
                 )
-                .logout(LogoutConfigurer::permitAll);
+                .logout(LogoutConfigurer::permitAll); // Разрешить всем выход
 
         return http.build();
     }
-
-    // --- Добавленный бин для фильтра ---
-    @Bean
-    public Filter springSecurityFilterChainProxy() { // Имя бина может быть любым
-        // Создаем DelegatingFilterProxy, указывая имя бина SecurityFilterChain
-        // В данном случае, имя метода @Bean -- 'filterChain', значит, бин SecurityFilterChain будет называться 'filterChain'
-        return new DelegatingFilterProxy("filterChain");
-    }
-    // --- Конец добавления бина ---
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
