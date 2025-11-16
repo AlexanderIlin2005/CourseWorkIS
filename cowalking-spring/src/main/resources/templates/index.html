@@ -1,5 +1,6 @@
+<!-- src/main/resources/templates/index.html -->
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,66 +8,68 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="nav-container">
-                <a href="/" class="logo">CoWalking</a>
-                <ul class="nav-menu">
-                    <li><a href="/events">Events</a></li>
-                    <li><a href="/locations">Locations</a></li>
-                    <li th:if="${#authentication.principal != null}">
-                        <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
-                    </li>
-                    <li th:if="${#authentication.principal != null}">
-                        <form th:action="@{/logout}" method="post" style="display:inline;">
-                            <button type="submit">Logout</button>
-                        </form>
-                    </li>
-                    <li th:if="${#authentication.principal == null}">
-                        <a href="/login">Login</a>
-                    </li>
-                    <li th:if="${#authentication.principal == null}">
-                        <a href="/registration">Register</a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
+<header>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">CoWalking</a>
+            <ul class="nav-menu">
+                <li><a href="/events">Events</a></li>
+                <!--<li><a href="/locations">Locations</a></li>-->
+                <!-- Проверяем аутентификацию и наличие principal -->
+                <li th:if="${#authentication != null and #authentication.authenticated and #authentication.principal != null}">
+                    <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
+                </li>
+                <li th:if="${#authentication != null and #authentication.authenticated and #authentication.principal != null}">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+                <!-- Отображаем Login/Registration, если пользователь НЕ аутентифицирован -->
+                <li th:if="${#authentication == null or !#authentication.authenticated}">
+                    <a href="/login">Login</a>
+                </li>
+                <li th:if="${#authentication == null or !#authentication.authenticated}">
+                    <a href="/registration">Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
 
-    <main>
-        <section class="hero">
-            <div class="hero-content">
-                <h1>Find Your Walking Community</h1>
-                <p>Join or create walking events in your area. Stay active, meet new people, and explore your city.</p>
-                <a href="/events" class="btn-primary">View Events</a>
-            </div>
-        </section>
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Find Your Walking Community</h1>
+            <p>Join or create walking events in your area. Stay active, meet new people, and explore your city.</p>
+            <a href="/events" class="btn-primary">View Events</a>
+        </div>
+    </section>
 
-        <section class="features">
-            <div class="container">
-                <h2>How CoWalking Works</h2>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <h3>Find Events</h3>
-                        <p>Browse upcoming walking events in your area and join those that match your interests.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Create Events</h3>
-                        <p>Organize your own walking events and invite others to join you.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Stay Active</h3>
-                        <p>Maintain a healthy lifestyle by participating in regular walking activities.</p>
-                    </div>
+    <section class="features">
+        <div class="container">
+            <h2>How CoWalking Works</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Find Events</h3>
+                    <p>Browse upcoming walking events in your area and join those that match your interests.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Create Events</h3>
+                    <p>Organize your own walking events and invite others to join you.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Stay Active</h3>
+                    <p>Maintain a healthy lifestyle by participating in regular walking activities.</p>
                 </div>
             </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 CoWalking. All rights reserved.</p>
         </div>
-    </footer>
+    </section>
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 CoWalking. All rights reserved.</p>
+    </div>
+</footer>
 </body>
 </html>
