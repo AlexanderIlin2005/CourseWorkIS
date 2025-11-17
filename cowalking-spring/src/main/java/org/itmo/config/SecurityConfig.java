@@ -44,10 +44,5 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // --- УБРАНО: configureGlobal ---
-    // @Autowired
-    // public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-    //     auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder);
-    // }
-    // --- КОНЕЦ УБРАНОГО ---
+
 }
