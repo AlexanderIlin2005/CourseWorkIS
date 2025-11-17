@@ -1,16 +1,8 @@
-
+// src/main/java/org/itmo/config/SecurityInitializer.java
 package org.itmo.config;
 
-import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
-
-
-public class SecurityInitializer extends AbstractSecurityWebApplicationInitializer {
-    
-    
-    public SecurityInitializer() {
-        
-        
-        
-        
-    }
+// УБРАЛИ наследование от AbstractSecurityWebApplicationInitializer
+public class SecurityInitializer {
+    // Пустой класс или маркер, если нужен для других целей
+    // Он НЕ вызывает регистрацию фильтра вручную
 }
