@@ -32,13 +32,13 @@ public class ParticipationService {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Check if event is full
+        
         if (event.getMaxParticipants() != null &&
             event.getCurrentParticipants() >= event.getMaxParticipants()) {
             throw new RuntimeException("Event is full");
         }
 
-        // Check if user already joined
+        
         Optional<Participation> existingParticipation =
             participationRepository.findByParticipantIdAndEventId(user.getId(), eventId);
         if (existingParticipation.isPresent()) {
@@ -52,7 +52,7 @@ public class ParticipationService {
 
         Participation saved = participationRepository.save(participation);
 
-        // Update current participants count
+        
         event.setCurrentParticipants(event.getCurrentParticipants() + 1);
         eventRepository.save(event);
 
@@ -67,7 +67,7 @@ public class ParticipationService {
 
         participationRepository.delete(participation);
 
-        // Update current participants count
+        
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
         event.setCurrentParticipants(Math.max(0, event.getCurrentParticipants() - 1));

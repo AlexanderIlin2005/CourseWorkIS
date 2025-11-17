@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 public interface LocationMapper {
     LocationDto toLocationDto(Location location);
 
-    @Mapping(target = "createdAt", ignore = true) // Игнорирование полей, устанавливаемых  вручную
+    @Mapping(target = "createdAt", ignore = true) 
     @Mapping(target = "updatedAt", ignore = true)
     Location toLocation(LocationDto locationDto);
 }

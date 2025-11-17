@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long> {
-    // Additional custom queries can be added here
+    
 }

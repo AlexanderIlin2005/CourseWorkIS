@@ -1,38 +1,38 @@
-// src/main/java/org/itmo/dto/EventDto.java
+
 package org.itmo.dto;
 
 import org.itmo.model.Event;
-import org.itmo.model.enums.EventStatus; // Импортируем enum
+import org.itmo.model.enums.EventStatus; 
 import lombok.Data;
 
-import java.time.ZonedDateTime; // Используем ZonedDateTime
+import java.time.ZonedDateTime; 
 
 @Data
 public class EventDto {
     private Long id;
     private String title;
     private String description;
-    private Long organizerId; // Может быть использовано для отправки ID организатора при создании
-    private Long locationId;  // Используется для выбора локации
-    private ZonedDateTime startTime; // Обновлено с LocalDateTime на ZonedDateTime
-    private ZonedDateTime endTime;   // Обновлено с LocalDateTime на ZonedDateTime
+    private Long organizerId; 
+    private Long locationId;  
+    private ZonedDateTime startTime; 
+    private ZonedDateTime endTime;   
     private Integer maxParticipants;
     private Integer currentParticipants;
-    private EventStatus status; // Обновлено: используем внешний enum
+    private EventStatus status; 
 
     public EventDto() {}
 
-    // Конструктор из сущности Event
+    
     public EventDto(Event event) {
         this.id = event.getId();
         this.title = event.getTitle();
         this.description = event.getDescription();
         this.organizerId = event.getOrganizer().getId();
         this.locationId = event.getLocation().getId();
-        this.startTime = event.getStartTime(); // Теперь ZonedDateTime
-        this.endTime = event.getEndTime();     // Теперь ZonedDateTime
+        this.startTime = event.getStartTime(); 
+        this.endTime = event.getEndTime();     
         this.maxParticipants = event.getMaxParticipants();
         this.currentParticipants = event.getCurrentParticipants();
-        this.status = event.getStatus(); // Теперь использует внешний enum
+        this.status = event.getStatus(); 
     }
 }

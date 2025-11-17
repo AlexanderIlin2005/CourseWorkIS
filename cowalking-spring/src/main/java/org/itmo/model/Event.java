@@ -1,10 +1,10 @@
-// src/main/java/org/itmo/model/Event.java
+
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
-import org.itmo.model.converters.ZonedDateTimeConverter; // Импортируем конвертер
-import org.itmo.model.enums.EventStatus; // <-- Добавьте этот импорт
-import org.itmo.model.enums.UserRole; // Проверьте, что этот импорт тоже есть
+import org.itmo.model.converters.LocalDateTimeConverter; 
+import org.itmo.model.converters.ZonedDateTimeConverter; 
+import org.itmo.model.enums.EventStatus; 
+import org.itmo.model.enums.UserRole; 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,6 +60,6 @@ public class Event {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING) // <-- Убедитесь, что аннотация стоит
-    private EventStatus status = EventStatus.ACTIVE; // <-- Используем импортированный enum
+    @Enumerated(EnumType.STRING) 
+    private EventStatus status = EventStatus.ACTIVE; 
 }

@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, EventMapper.class}) // Добавлены зависимости для мапперов связанных сущностей
+@Mapper(componentModel = "spring", uses = {UserMapper.class, EventMapper.class}) 
 public interface ReportMapper {
 
     @Mapping(source = "reporter.id", target = "reporterId")
@@ -14,12 +14,12 @@ public interface ReportMapper {
     @Mapping(source = "event.id", target = "eventId")
     ReportDto toReportDto(Report report);
 
-    @Mapping(source = "reporterId", target = "reporter", qualifiedByName = "mapUserByIdForReport") // Уникальное имя
-    @Mapping(source = "reportedUserId", target = "reportedUser", qualifiedByName = "mapUserByIdForReport") // Уникальное имя
-    @Mapping(source = "eventId", target = "event", qualifiedByName = "mapEventByIdForReport") // Уникальное имя
+    @Mapping(source = "reporterId", target = "reporter", qualifiedByName = "mapUserByIdForReport") 
+    @Mapping(source = "reportedUserId", target = "reportedUser", qualifiedByName = "mapUserByIdForReport") 
+    @Mapping(source = "eventId", target = "event", qualifiedByName = "mapEventByIdForReport") 
     Report toReport(ReportDto reportDto);
 
-    // Уникальные имена для избежания конфликта 
+    
     @Named("mapUserByIdForReport")
     default org.itmo.model.User mapUserByIdForReport(Long id) {
         if (id == null) {

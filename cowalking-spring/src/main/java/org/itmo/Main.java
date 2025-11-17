@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/Main.java
+
 package org.itmo;
 
 import org.eclipse.jetty.server.Server;
@@ -6,21 +6,21 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import jakarta.servlet.ServletContext;
 import org.itmo.config.AppConfig;
-import org.itmo.config.SecurityConfig; // Убедитесь, что импортирован
+import org.itmo.config.SecurityConfig; 
 import org.itmo.config.WebConfig;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
-// --- Импорты для Jetty ---
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlet.FilterHolder; // <-- Нужен для обертывания фильтра
-// --- Конец импорт---
+import org.eclipse.jetty.servlet.FilterHolder; 
 
-// --- Импорты для Spring Security ---
-import org.springframework.web.filter.DelegatingFilterProxy; // <-- Импортируем фильтр
-// --- Конец импорт---
+
+
+import org.springframework.web.filter.DelegatingFilterProxy; 
+
 
 public class Main {
 
@@ -36,38 +36,37 @@ public class Main {
 
         Server server = new Server(port);
 
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS); 
         context.setContextPath("/");
         server.setHandler(context);
+        
 
-        // 1. Создаем и регистрируем корневой контекст (root context) через ContextLoaderListener
+        
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
-        rootContext.register(AppConfig.class, SecurityConfig.class);
-        context.addEventListener(new ContextLoaderListener(rootContext));
+        rootContext.register(AppConfig.class, SecurityConfig.class); 
+        ContextLoaderListener contextLoaderListener = new ContextLoaderListener(rootContext);
+        context.addEventListener(contextLoaderListener); 
 
-        // --- РУЧНАЯ РЕГИСТРАЦИЯ ФИЛЬТРА Spring Security ---
-        // Создаем DelegatingFilterProxy для 'springSecurityFilterChain'
-        // Это имя бина, которое Spring Security автоматически создает из SecurityFilterChain
+        
+        
+        
         DelegatingFilterProxy securityFilterChainProxy = new DelegatingFilterProxy("springSecurityFilterChain");
-        // Устанавливаем родительский контекст напрямую (альтернатива setApplicationContextAttribute)
-        // Это гарантирует, что фильтр будет искать бин 'springSecurityFilterChain' в rootContext
-        // ---> УБРАНА ПРОБЛЕМНАЯ СТРОКА: securityFilterChainProxy.setApplicationContext(rootContext);
-        // ---> Вместо этого, rely на стандартное поведение DelegatingFilterProxy и ContextLoaderListener.
-        // Регистрируем фильтр на все пути ("/*") ПЕРЕД DispatcherServlet
+        
         FilterHolder filterHolder = new FilterHolder(securityFilterChainProxy);
-        context.addFilter(filterHolder, "/*", null); // Регистрируем фильтр на все пути ПЕРЕД DispatcherServlet
-        // --- КОНЕЦ РУЧНОЙ РЕГИСТРАЦИИ ---
+        context.addFilter(filterHolder, "/*", null); 
+        
 
-        // 2. Создаем веб-контекст (web context) и устанавливаем ему родителя (корневой контекст)
+        
         AnnotationConfigWebApplicationContext webContext = new AnnotationConfigWebApplicationContext();
-        webContext.register(WebConfig.class);
-        webContext.setParent(rootContext); // Устанавливаем иерархию контекстов
+        webContext.register(WebConfig.class); 
+        webContext.setParent(rootContext); 
 
-        // 3. Создаем DispatcherServlet и передаем ему веб-контекст
+        
         org.springframework.web.servlet.DispatcherServlet dispatcherServlet = new org.springframework.web.servlet.DispatcherServlet(webContext);
 
         ServletHolder servletHolder = new ServletHolder(dispatcherServlet);
-        context.addServlet(servletHolder, "/"); // Маппим на корень
+        context.addServlet(servletHolder, "/"); 
 
         server.start();
         server.join();
@@ -79,7 +78,7 @@ public class Main {
                 socket.setReuseAddress(true);
                 return port;
             } catch (IOException ignored) {
-                // Порт занят, продолжаем цикл
+                
             }
         }
         return -1;

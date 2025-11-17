@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/controller/ParticipationController.java
+
 package org.itmo.controller;
 
 import org.itmo.model.User;

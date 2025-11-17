@@ -1,7 +1,6 @@
-// src/main/java/org/itmo/model/User.java
+
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import org.itmo.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,7 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime; // Убедитесь, что это java.time.LocalDateTime
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -20,7 +19,7 @@ import java.util.Collections;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements UserDetails {
+public class User implements UserDetails { 
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,15 +39,11 @@ public class User implements UserDetails {
 
     private boolean active = true;
 
-    // --- Используем кастомный конвертер ---
-    @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Convert(converter = LocalDateTimeConverter.class)
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
-    // --- Конец изменений ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/model/converters/LocalDateTimeConverter.java
+
 package org.itmo.model.converters;
 
 import jakarta.persistence.AttributeConverter;

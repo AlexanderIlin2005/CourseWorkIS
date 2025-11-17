@@ -1,7 +1,7 @@
-// src/main/java/org/itmo/model/Participation.java
+
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
+import org.itmo.model.converters.LocalDateTimeConverter; 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +32,10 @@ public class Participation {
     @Column(name = "joined_at")
     private LocalDateTime joinedAt = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING) // <-- Убедитесь, что аннотация стоит
-    private ParticipationStatus status = ParticipationStatus.PENDING; // <-- Предполагается, что enum определен
+    @Enumerated(EnumType.STRING) 
+    private ParticipationStatus status = ParticipationStatus.PENDING; 
 
-    // Определение enum внутри класса
+    
     public enum ParticipationStatus {
         PENDING, CONFIRMED, CANCELLED
     }

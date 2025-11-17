@@ -1,59 +1,68 @@
-// src/main/java/org/itmo/controller/UserController.java
+
 package org.itmo.controller;
 
-import org.itmo.dto.UserDto; // Убедитесь, что импортируете DTO, а не сущность
+import org.itmo.dto.UserDto;
 import org.itmo.model.User;
 import org.itmo.model.enums.UserRole;
 import org.itmo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory; 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequiredArgsConstructor // Lombok генерирует конструктор для final полей
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class); 
+
     @GetMapping("/users/profile")
     public String profile(Model model) {
-        // ... существующая логика ...
+        
         return "profile";
     }
 
     @PostMapping("/users/update")
     public String updateProfile(@ModelAttribute User user, Model model) {
-        // ... существующая логика ...
+        
         return "profile";
     }
 
-    // --- Добавлено: GET для страницы регистрации ---
     @GetMapping("/registration")
     public String registrationForm(Model model) {
-        model.addAttribute("userDto", new UserDto()); // Теперь этот вызов должен работать
-        return "registration"; // Возвращает имя шаблона
+        logger.info("Displaying registration form"); 
+        model.addAttribute("userDto", new UserDto());
+        return "registration";
     }
 
-    // --- Добавлено: POST для обработки регистрации ---
     @PostMapping("/registration")
     public String registerUser(@ModelAttribute UserDto userDto, Model model) {
+        logger.info("Processing registration request for username: {}", userDto.getUsername()); 
         try {
             User user = new User();
             user.setUsername(userDto.getUsername());
             user.setEmail(userDto.getEmail());
-            // Используем getPassword() из DTO
-            user.setPassword(userService.encodePassword(userDto.getPassword()));
-            user.setRole(UserRole.PARTICIPANT); // Устанавливаем роль по умолчанию
+            String rawPassword = userDto.getPassword();
+            logger.debug("Received raw password for registration: {}", rawPassword); 
+            
+            String encodedPassword = userService.encodePassword(rawPassword); 
+            user.setPassword(encodedPassword);
+            user.setRole(UserRole.PARTICIPANT);
             user.setActive(true);
 
-            userService.save(user);
+            User savedUser = userService.save(user); 
+            logger.info("User registered successfully with ID: {}", savedUser.getId()); 
             model.addAttribute("message", "Registration successful!");
-            return "login"; // Перенаправляем на страницу входа после успешной регистрации
+            return "login";
         } catch (Exception e) {
+            logger.error("Registration failed for username '{}': {}", userDto.getUsername(), e.getMessage(), e); 
             model.addAttribute("error", "Registration failed: " + e.getMessage());
-            model.addAttribute("userDto", userDto); // Передаем DTO обратно, чтобы поля не очистились
-            return "registration"; // Возвращаемся к форме регистрации с ошибкой
+            model.addAttribute("userDto", userDto);
+            return "registration";
         }
     }
 }

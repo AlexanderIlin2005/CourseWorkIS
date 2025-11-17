@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/config/WebConfig.java
+
 package org.itmo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,11 +26,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // --- Исправлено: добавлен classpath: ---
+        
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
-        // --- Конец исправления ---
+        
     }
 
     @Override
@@ -44,14 +44,14 @@ public class WebConfig implements WebMvcConfigurer {
         converters.add(converter);
     }
 
-    // --- Добавлены бины для Thymeleaf ---
+    
     @Bean
     public SpringResourceTemplateResolver templateResolver() {
         SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setPrefix("classpath:/templates/"); // Путь к шаблонам
-        templateResolver.setSuffix(".html"); // Расширение шаблонов
-        templateResolver.setTemplateMode("HTML"); // Режим шаблона
-        templateResolver.setCacheable(false); // Отключаем кэширование для разработки
+        templateResolver.setPrefix("classpath:/templates/"); 
+        templateResolver.setSuffix(".html"); 
+        templateResolver.setTemplateMode("HTML"); 
+        templateResolver.setCacheable(false); 
         return templateResolver;
     }
 
@@ -69,5 +69,5 @@ public class WebConfig implements WebMvcConfigurer {
         viewResolver.setCharacterEncoding("UTF-8");
         return viewResolver;
     }
-    // --- Конец добавленных бинов ---
+    
 }

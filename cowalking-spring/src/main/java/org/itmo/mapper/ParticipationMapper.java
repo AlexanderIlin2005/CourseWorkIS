@@ -6,18 +6,18 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, EventMapper.class}) // Добавлены зависимости для мапперов связанных сущностей
+@Mapper(componentModel = "spring", uses = {UserMapper.class, EventMapper.class}) 
 public interface ParticipationMapper {
 
     @Mapping(source = "participant.id", target = "userId")
     @Mapping(source = "event.id", target = "eventId")
     ParticipationDto toParticipationDto(Participation participation);
 
-    @Mapping(source = "userId", target = "participant", qualifiedByName = "mapUserByIdForParticipation") // Уникальное имя
-    @Mapping(source = "eventId", target = "event", qualifiedByName = "mapEventByIdForParticipation") // Уникальное имя
+    @Mapping(source = "userId", target = "participant", qualifiedByName = "mapUserByIdForParticipation") 
+    @Mapping(source = "eventId", target = "event", qualifiedByName = "mapEventByIdForParticipation") 
     Participation toParticipation(ParticipationDto participationDto);
 
-    // Уникальные имена для избежания конфликта
+    
     @Named("mapUserByIdForParticipation")
     default org.itmo.model.User mapUserByIdForParticipation(Long id) {
         if (id == null) {
