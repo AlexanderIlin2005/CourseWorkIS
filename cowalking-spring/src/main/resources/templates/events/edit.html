@@ -16,17 +16,6 @@
                 <li><a href="/events">Events</a></li>
                 <li><a href="/locations">Locations</a></li>
                 <!-- --- УБРАНО: Spring Security проверки --- -->
-                <!-- <li th:if="${#authentication != null and #authentication.principal != null}">
-                    <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
-                </li>
-                <li th:if="${#authentication != null and #authentication.principal != null}">
-                    <form th:action="@{/logout}" method="post" style="display:inline;">
-                        <button type="submit">Logout</button>
-                    </form>
-                </li> -->
-                <!-- --- КОНЕЦ УБРАНОГО --- -->
-
-                <!-- --- ИМИТАЦИЯ: Всегда показываем Login/Registration --- -->
                 <li><a href="/login">Login</a></li>
                 <li><a href="/registration">Register</a></li>
             </ul>

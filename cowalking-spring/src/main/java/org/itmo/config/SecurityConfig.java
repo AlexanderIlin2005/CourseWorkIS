@@ -1,7 +1,7 @@
 // src/main/java/org/itmo/config/SecurityConfig.java
 package org.itmo.config;
 
-import org.itmo.service.UserService; // Убедитесь, что импортирован
+import org.itmo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,28 +18,28 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService; // Сервис для UserDetailsService
+    private UserService userService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // Сервис для PasswordEncoder
+    private PasswordEncoder passwordEncoder;
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return userService; // Возвращаем ваш UserService (UserDetailsService)
+        return userService;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login", "/events/create", "/events").permitAll() // <-- Добавлены /events и /events/create
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // Разрешаем ВСЕ запросы без аутентификации
                 )
                 .formLogin((form) -> form
-                        .loginPage("/login") // Указываем страницу логина
-                        .permitAll() // Разрешаем всем доступ к странице логина
+                        .loginPage("/login")
+                        .permitAll()
                 )
-                .logout(LogoutConfigurer::permitAll); // Разрешить всем выход
+                .logout(LogoutConfigurer::permitAll)
+                .csrf().disable(); // Отключаем CSRF для упрощения (можно включить, если нужно)
 
         return http.build();
     }

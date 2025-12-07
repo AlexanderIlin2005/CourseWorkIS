@@ -5,21 +5,24 @@ import org.itmo.model.Event;
 import org.itmo.model.enums.EventStatus;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; // Используем LocalDateTime
 
 @Data
 public class EventDto {
     private Long id;
     private String title;
     private String description;
-    private Long organizerId;
-    // --- ИЗМЕНЕНО: добавлено locationName, убрано location ---
-    private String locationName; // <-- Добавлено поле для имени локации
-    private Long locationId;     // <-- Оставлено ID локации
-    private String locationAddress; // <-- Добавить
+    // --- ИЗМЕНЕНО: добавлен organizerUsername, убран organizer ---
+    private String organizerUsername; // <-- Добавлено поле для имени организатора
+    private Long organizerId;         // <-- Оставлено ID организатора
     // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    // --- ИЗМЕНЕНО: добавлены locationName и locationAddress, убран location ---
+    private String locationName;      // <-- Добавлено поле для имени локации
+    private String locationAddress;   // <-- Добавлено поле для адреса локации
+    private Long locationId;          // <-- Оставлено ID локации
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+    private LocalDateTime startTime; // Теперь LocalDateTime
+    private LocalDateTime endTime;   // Теперь LocalDateTime
     private Integer maxParticipants;
     private Integer currentParticipants;
     private EventStatus status;
@@ -31,11 +34,17 @@ public class EventDto {
         this.id = event.getId();
         this.title = event.getTitle();
         this.description = event.getDescription();
-        this.organizerId = event.getOrganizer().getId();
-        // --- ИЗМЕНЕНО: установка locationName и locationId ---
+        // --- ИЗМЕНЕНО: установка organizerUsername и organizerId ---
+        if (event.getOrganizer() != null) { // Проверка на null
+            this.organizerUsername = event.getOrganizer().getUsername(); // Устанавливаем имя организатора
+            this.organizerId = event.getOrganizer().getId();             // Устанавливаем ID организатора
+        }
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+        // --- ИЗМЕНЕНО: установка locationName, locationAddress и locationId ---
         if (event.getLocation() != null) { // Проверка на null
-            this.locationName = event.getLocation().getName(); // Устанавливаем имя локации
-            this.locationId = event.getLocation().getId();     // Устанавливаем ID локации
+            this.locationName = event.getLocation().getName();      // Устанавливаем имя локации
+            this.locationAddress = event.getLocation().getAddress(); // Устанавливаем адрес локации
+            this.locationId = event.getLocation().getId();          // Устанавливаем ID локации
         }
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         this.startTime = event.getStartTime();

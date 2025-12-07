@@ -115,6 +115,8 @@ public class EventController {
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
         // --- ИМИТАЦИЯ: Проверка прав ---
+        // В реальности нужно проверить, является ли текущий пользователь организатором или админом
+        // Пока просто проверим, что текущий пользователь - admin
         User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
                 .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
 
@@ -125,9 +127,13 @@ public class EventController {
 
         // Преобразуем DTO в сущность Event
         Event event = eventMapper.toEvent(eventDto);
-        // Сохраняем ID и организатора из существующего события
+        // --- ИСПРАВЛЕНО: Сохраняем ID, организатора и currentParticipants из существующего события ---
         event.setId(id);
-        event.setOrganizer(existingEvent.getOrganizer());
+        event.setOrganizer(existingEvent.getOrganizer()); // Сохраняем оригинального организатора
+        event.setCurrentParticipants(existingEvent.getCurrentParticipants()); // <-- Сохраняем количество участников
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        // Не сохраняем status, если не предполагается его изменение через редактирование
+        // event.setStatus(existingEvent.getStatus()); // <-- Опционально, если status не редактируется
 
         try {
             Event updatedEvent = eventService.save(event, fakeCurrentUser);

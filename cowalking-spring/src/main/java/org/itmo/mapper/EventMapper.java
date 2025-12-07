@@ -11,18 +11,19 @@ import org.itmo.model.Location; // Импортируем Location
 @Mapper(componentModel = "spring", uses = {UserMapper.class, LocationMapper.class})
 public interface EventMapper {
 
-    // --- ИЗМЕНЕНО: маппинг location.name в locationName ---
-    @Mapping(source = "organizer.id", target = "organizerId")
-    @Mapping(source = "location.name", target = "locationName") // <-- Маппим имя локации
-    @Mapping(source = "location.address", target = "locationAddress") // <-- Добавить
-    @Mapping(source = "location.id", target = "locationId")     // <-- Маппим ID локации
-    EventDto toEventDto(Event event);
+    // --- ИЗМЕНЕНО: маппинг organizer.username в organizerUsername ---
+    @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппим имя организатора
+    @Mapping(source = "organizer.id", target = "organizerId")             // <-- Маппим ID организатора
     // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+    // --- ИЗМЕНЕНО: маппинг location.name и location.address ---
+    @Mapping(source = "location.name", target = "locationName")      // <-- Маппим имя локации
+    @Mapping(source = "location.address", target = "locationAddress") // <-- Маппим адрес локации
+    @Mapping(source = "location.id", target = "locationId")          // <-- Маппим ID локации
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+    EventDto toEventDto(Event event);
 
     @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
-    // --- ИЗМЕНЕНО: маппинг locationId в location ---
-    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent") // <-- Маппим ID локации в объект
-    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
     @Mapping(target = "createdAt", ignore = true) // Игнорируем поля, устанавливаемые вручную
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "status", ignore = true) // Игнорируем статус при создании/редактировании через DTO

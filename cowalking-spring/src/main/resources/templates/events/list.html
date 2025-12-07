@@ -15,14 +15,20 @@
             <ul class="nav-menu">
                 <li><a href="/events">Events</a></li>
                 <!-- <li><a href="/locations">Locations</a></li> --> <!-- Пока оставим, если планируется реализация -->
-                <!-- --- ЗАМЕНЯЕМ Spring Security проверки на JS --- -->
-                <li id="profileNav" style="display:none;"><a href="/users/profile" id="profileLink">Profile</a></li>
-                <li id="logoutNav" style="display:none;">
-                    <button id="logoutBtn" onclick="simulateLogout()">Logout</button>
+                <!-- --- УБРАНО: Spring Security проверки (временно, пока не работает аутентификация) --- -->
+                <!-- <li th:if="${#authentication != null and #authentication.principal != null}">
+                    <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
                 </li>
-                <li id="loginNav"><a href="/login">Login</a></li>
-                <li id="registrationNav"><a href="/registration">Register</a></li>
-                <!-- --- КОНЕЦ ЗАМЕНЫ --- -->
+                <li th:if="${#authentication != null and #authentication.principal != null}">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li> -->
+                <!-- --- КОНЕЦ УБРАНОГО --- -->
+
+                <!-- --- ИМИТАЦИЯ: Всегда показываем Login/Registration --- -->
+                <li><a href="/login">Login</a></li>
+                <li><a href="/registration">Register</a></li>
             </ul>
         </div>
     </nav>
@@ -32,147 +38,43 @@
     <div class="container">
         <h1>Events</h1>
 
-        <!-- --- ЗАМЕНЯЕМ Spring Security проверки на JS --- -->
-        <div id="createEventDiv" style="display:none;">
-            <a href="/events/create" class="btn-primary">Create Event</a>
-        </div>
-        <button id="loginToCreateBtn" class="btn-primary" style="display:none;" onclick="checkAuthForAction('Create Event');">Create Event</button>
-        <!-- --- КОНЕЦ ЗАМЕНЫ --- -->
+        <!-- --- ИМИТАЦИЯ: Всегда показываем кнопку Create Event --- -->
+        <a href="/events/create" class="btn-primary">Create Event</a>
+        <!-- --- КОНЕЦ ИМИТАЦИИ --- -->
 
         <div class="events-grid">
             <div class="event-card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p th:text="${event.description}">Event Description</p>
-                <!-- --- ИЗМЕНЕНО: используем locationName вместо event.location.name --- -->
+                <!-- --- ИЗМЕНЕНО: используем locationName из DTO --- -->
                 <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
                 <!-- --- КОНЕЦ ИЗМЕНЕНИЯ --- -->
                 <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                <!-- --- ИЗМЕНЕНО: используем organizerUsername из DTO --- -->
+                <p>Organizer: <span th:text="${event.organizerUsername}">Organizer Name</span></p>
+                <!-- --- КОНЕЦ ИЗМЕНЕНИЯ --- -->
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
 
-                <!-- --- ЗАМЕНЯЕМ Spring Security проверки на JS --- -->
-                <button class="join-event-btn" data-event-id="${event.id}" style="display:none;" onclick="handleJoinEvent(this.getAttribute('data-event-id'));">Join Event</button>
-                <button class="leave-event-btn" data-event-id="${event.id}" style="display:none;" onclick="handleLeaveEvent(this.getAttribute('data-event-id'));">Leave Event</button>
-                <button class="edit-event-btn" data-event-id="${event.id}" style="display:none;" onclick="handleEditEvent(this.getAttribute('data-event-id'));">Edit Event</button>
-                <button class="delete-event-btn" data-event-id="${event.id}" style="display:none;" onclick="handleDeleteEvent(this.getAttribute('data-event-id'));">Delete Event</button>
-                <!-- --- КОНЕЦ ЗАМЕНЫ --- -->
+                <!-- --- ИМИТАЦИЯ: Всегда показываем кнопки Join/Leave/Edit/Delete --- -->
+                <form th:action="@{/participations/join/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-primary">Join Event</button>
+                </form>
+                <form th:action="@{/participations/leave/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-secondary">Leave Event</button>
+                </form>
+                <!-- --- ИСПРАВЛЕНО: синтаксис URL для Edit --- -->
+                <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn-secondary">Edit Event</a>
+                <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
+                <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this event?')">Delete Event</button>
+                </form>
+                <!-- --- КОНЕЦ ИМИТАЦИИ --- -->
             </div>
         </div>
     </div>
 </main>
 
-<!-- --- ДОБАВЛЕННЫЙ JS для имитации аутентификации и действий --- -->
-<script th:inline="javascript">
-    // --- Проверка аутентификации и обновление UI при загрузке ---
-    window.onload = function() {
-        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-        const currentUser = localStorage.getItem('currentUser');
-        const userRole = localStorage.getItem('userRole');
-
-        if (isAuthenticated && currentUser) {
-            document.getElementById('profileLink').textContent = currentUser;
-            document.getElementById('profileNav').style.display = '';
-            document.getElementById('logoutNav').style.display = '';
-            document.getElementById('loginNav').style.display = 'none';
-            document.getElementById('registrationNav').style.display = 'none';
-
-            // Показываем кнопку "Create Event"
-            document.getElementById('createEventDiv').style.display = '';
-            document.getElementById('loginToCreateBtn').style.display = 'none';
-
-            // Показываем кнопки Join/Leave/Edit/Delete в зависимости от роли/владения
-            document.querySelectorAll('.event-card').forEach(card => {
-                const joinBtn = card.querySelector('.join-event-btn');
-                const leaveBtn = card.querySelector('.leave-event-btn');
-                const editBtn = card.querySelector('.edit-event-btn');
-                const deleteBtn = card.querySelector('.delete-event-btn');
-
-                // Для простоты, покажем Join/Leave всем аутентифицированным
-                joinBtn.style.display = '';
-                leaveBtn.style.display = '';
-
-                // Покажем Edit/Delete только "организатору" (в реальности это проверяется бы на бэкенде)
-                // В данной имитации, предположим, что пользователь "admin" может всё
-                if (currentUser === 'admin') { // Проверка имени, а не роли, для простоты
-                     editBtn.style.display = '';
-                     deleteBtn.style.display = '';
-                }
-            });
-
-            if (userRole === 'ADMIN') {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
-            }
-        } else {
-            document.getElementById('profileNav').style.display = 'none';
-            document.getElementById('logoutNav').style.display = 'none';
-            document.getElementById('loginNav').style.display = '';
-            document.getElementById('registrationNav').style.display = '';
-
-            // Показываем кнопку "Login to Create Event"
-            document.getElementById('createEventDiv').style.display = 'none';
-            document.getElementById('loginToCreateBtn').style.display = '';
-
-            // Скрываем кнопки Join/Leave/Edit/Delete
-            document.querySelectorAll('.join-event-btn').forEach(btn => btn.style.display = 'none');
-            document.querySelectorAll('.leave-event-btn').forEach(btn => btn.style.display = 'none');
-            document.querySelectorAll('.edit-event-btn').forEach(btn => btn.style.display = 'none');
-            document.querySelectorAll('.delete-event-btn').forEach(btn => btn.style.display = 'none');
-
-            // Скрываем админские элементы
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-        }
-    };
-
-    function simulateLogin(username, role = 'USER') {
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('currentUser', username);
-        localStorage.setItem('userRole', role);
-        location.reload();
-    }
-
-    function simulateLogout() {
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('userRole');
-        location.reload();
-    }
-
-    function checkAuthForAction(actionName) {
-        if (localStorage.getItem('isAuthenticated') !== 'true') {
-            alert(`Please log in to ${actionName.toLowerCase()}.`);
-            window.location.href = '/login';
-            return false;
-        }
-        return true;
-    }
-
-    // --- ИМИТАЦИЯ действий ---
-    function handleJoinEvent(eventId) {
-        if (!checkAuthForAction('Join Event')) return;
-        alert(`Simulating joining event ${eventId}`);
-        // Здесь мог бы быть fetch('/participations/join/' + eventId, {method: 'POST', ...})
-    }
-
-    function handleLeaveEvent(eventId) {
-        if (!checkAuthForAction('Leave Event')) return;
-        alert(`Simulating leaving event ${eventId}`);
-        // fetch('/participations/leave/' + eventId, {method: 'POST', ...})
-    }
-
-    function handleEditEvent(eventId) {
-        if (!checkAuthForAction('Edit Event')) return;
-        window.location.href = `/events/${eventId}/edit`;
-    }
-
-    function handleDeleteEvent(eventId) {
-        if (!checkAuthForAction('Delete Event')) return;
-        if (confirm('Are you sure you want to delete this event?')) {
-            alert(`Simulating deleting event ${eventId}`);
-            // fetch('/events/' + eventId + '/delete', {method: 'POST', ...})
-        }
-    }
-    // --- КОНЕЦ ИМИТАЦИИ ---
-</script>
-<!-- --- КОНЕЦ ДОБАВЛЕННОГО JS --- -->
+<!-- УБРАНО: JS для имитации аутентификации -->
 </body>
 </html>
