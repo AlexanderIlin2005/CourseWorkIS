@@ -49,8 +49,8 @@
                 <!-- --- ИСПРАВЛЕНО: используем locationName из DTO --- -->
                 <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
                 <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
-                <!-- --- ИСПРАВЛЕНО: отображаем startTime как строку --- -->
-                <p>Time: <span th:text="${event.startTime}">Start Time</span></p>
+                <!-- --- ИСПРАВЛЕНО: используем startTime из DTO как строку --- -->
+                <p>Time: <span class="local-date" th:text="${event.startTime}">Start Time</span></p>
                 <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                 <!-- --- ИЗМЕНЕНО: используем organizerUsername из DTO --- -->
@@ -76,6 +76,44 @@
         </div>
     </div>
 </main>
+
+<!-- --- ДОБАВЛЕННЫЙ JavaScript для форматирования даты --- -->
+<script>
+    // Функция для преобразования строки LocalDateTime (yyyy-MM-ddTHH:mm:ss) в dd/MM/yyyy HH:mm
+    function formatLocalDateTime(dateStr) {
+        if (!dateStr) return dateStr; // Если строка пуста, возвращаем как есть
+
+        // Разбираем строку вручную
+        const [datePart, timePart] = dateStr.split('T');
+        if (!datePart || !timePart) return dateStr; // Если формат не совпадает, возвращаем как есть
+
+        const [year, month, day] = datePart.split('-');
+        const [hour, minute, second] = timePart.split(':'); // Секунды могут быть, но не нужны
+
+        // Проверим, что все компоненты - числа
+        if (!year || !month || !day || !hour || !minute || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute)) {
+            console.error("Invalid date format:", dateStr);
+            return dateStr; // Если что-то не число, возвращаем как есть
+        }
+
+        // Формируем строку в нужном формате: dd/MM/yyyy HH:mm
+        // Используем parseInt для чисел, чтобы избежать строкового сложения
+        const formattedDate = `${parseInt(day)}/${parseInt(month)}/${parseInt(year)} ${parseInt(hour)}:${parseInt(minute).toString().padStart(2, '0')}`;
+        return formattedDate;
+    }
+
+    // При загрузке DOM, находим все элементы с классом 'local-date' и форматируем их содержимое
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateElements = document.querySelectorAll('.local-date');
+        dateElements.forEach(function(element) {
+            const originalText = element.textContent.trim();
+            const formattedText = formatLocalDateTime(originalText);
+            element.textContent = formattedText;
+        });
+    });
+</script>
+<!-- --- КОНЕЦ ДОБАВЛЕННОГО JavaScript --- -->
+
 
 <!-- УБРАНО: JS для имитации аутентификации -->
 </body>
