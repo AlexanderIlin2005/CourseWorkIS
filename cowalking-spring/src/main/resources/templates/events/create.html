@@ -1,3 +1,4 @@
+<!-- src/main/resources/templates/events/create.html -->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -7,69 +8,77 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="nav-container">
-                <a href="/" class="logo">CoWalking</a>
-                <ul class="nav-menu">
-                    <li><a href="/events">Events</a></li>
-                    <li><a href="/locations">Locations</a></li>
-                    <li><a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a></li>
-                    <li>
-                        <form th:action="@{/logout}" method="post" style="display:inline;">
-                            <button type="submit">Logout</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
+<header>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">CoWalking</a>
+            <ul class="nav-menu">
+                <li><a href="/events">Events</a></li>
+                <li><a href="/locations">Locations</a></li>
+                <!-- --- УБРАНО: Spring Security проверки --- -->
+                <!-- <li th:if="${#authentication != null and #authentication.principal != null}">
+                    <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
+                </li>
+                <li th:if="${#authentication != null and #authentication.principal != null}">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li> -->
+                <!-- --- КОНЕЦ УБРАНОГО --- -->
 
-    <main>
-        <div class="container">
-            <h1>Create Event</h1>
-            
-            <div th:if="${error}" class="error" th:text="${error}">Error message</div>
-            
-            <form th:action="@{/events/create}" method="post" th:object="${event}">
-                <div class="form-group">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" th:field="*{title}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea id="description" th:field="*{description}" rows="5"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="locationId">Location:</label>
-                    <select id="locationId" th:field="*{locationId}" required>
-                        <option value="">Select a location</option>
-                        <option th:each="location : ${locations}" 
-                                th:value="${location.id}" 
-                                th:text="${location.name}">Location</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="startTime">Start Time:</label>
-                    <input type="datetime-local" id="startTime" th:field="*{startTime}">
-                </div>
-                
-                <div class="form-group">
-                    <label for="endTime">End Time:</label>
-                    <input type="datetime-local" id="endTime" th:field="*{endTime}">
-                </div>
-                
-                <div class="form-group">
-                    <label for="maxParticipants">Max Participants:</label>
-                    <input type="number" id="maxParticipants" th:field="*{maxParticipants}" min="1">
-                </div>
-                
-                <button type="submit" class="btn-primary">Create Event</button>
-            </form>
+                <!-- --- ИМИТАЦИЯ: Всегда показываем Login/Registration --- -->
+                <li><a href="/login">Login</a></li>
+                <li><a href="/registration">Register</a></li>
+            </ul>
         </div>
-    </main>
+    </nav>
+</header>
+
+<main>
+    <div class="container">
+        <h1>Create Event</h1>
+
+        <div th:if="${error}" class="error" th:text="${error}">Error message</div>
+
+        <form th:action="@{/events/create}" method="post" th:object="${event}">
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" id="title" th:field="*{title}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" th:field="*{description}" rows="5"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="locationId">Location:</label>
+                <select id="locationId" th:field="*{locationId}" required>
+                    <option value="">Select a location</option>
+                    <option th:each="location : ${locations}"
+                            th:value="${location.id}"
+                            th:text="${location.name}">Location</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="startTime">Start Time:</label>
+                <input type="datetime-local" id="startTime" th:field="*{startTime}">
+            </div>
+
+            <div class="form-group">
+                <label for="endTime">End Time:</label>
+                <input type="datetime-local" id="endTime" th:field="*{endTime}">
+            </div>
+
+            <div class="form-group">
+                <label for="maxParticipants">Max Participants:</label>
+                <input type="number" id="maxParticipants" th:field="*{maxParticipants}" min="1">
+            </div>
+
+            <button type="submit" class="btn-primary">Create Event</button>
+        </form>
+    </div>
+</main>
 </body>
 </html>

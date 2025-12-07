@@ -32,8 +32,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**").permitAll() // Разрешаем доступ
-                        .anyRequest().authenticated() // Все остальные требуют аутентификации
+                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login", "/events/create", "/events").permitAll() // <-- Добавлены /events и /events/create
+                        .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
                         .loginPage("/login") // Указываем страницу логина
@@ -44,5 +44,8 @@ public class SecurityConfig {
         return http.build();
     }
 
-
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder);
+    }
 }

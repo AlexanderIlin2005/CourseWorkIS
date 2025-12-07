@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/Main.java (обновленный вариант)
+// src/main/java/org/itmo/Main.java
 package org.itmo;
 
 import org.eclipse.jetty.server.Server;
@@ -15,11 +15,13 @@ import java.net.ServerSocket;
 // --- Импорты для Jetty ---
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlet.FilterHolder; // <-- Нужен для обертывания фильтра
+import org.eclipse.jetty.servlet.FilterHolder; // <-- Нужен для регистрации фильтра
 // --- Конец импорт---
 
 // --- Импорты для Spring Security (только DelegatingFilterProxy)---
 import org.springframework.web.filter.DelegatingFilterProxy; // <-- Импортируем фильтр
+import jakarta.servlet.DispatcherType; // <-- Для EnumSet
+import java.util.EnumSet; // <-- Для EnumSet
 // --- Конец импорт---
 
 public class Main {
@@ -44,7 +46,7 @@ public class Main {
 
         // 1. Создаем и регистрируем корневой контекст (root context) через ContextLoaderListener
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
-        rootContext.register(AppConfig.class, SecurityConfig.class); // Убедитесь, что SecurityConfig здесь
+        rootContext.register(AppConfig.class, SecurityConfig.class); // Убедитесь, что SecurityConfig здесь (для PasswordEncoder)
         context.addEventListener(new ContextLoaderListener(rootContext));
 
         // --- РУЧНАЯ РЕГИСТРАЦИЯ ФИЛЬТРА Spring Security ---

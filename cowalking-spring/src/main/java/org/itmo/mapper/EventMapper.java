@@ -9,14 +9,16 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring", uses = {UserMapper.class, LocationMapper.class}) 
 public interface EventMapper {
 
-    @Mapping(source = "organizer.id", target = "organizerId") 
-    @Mapping(source = "location.id", target = "locationId")   
+    @Mapping(source = "organizer.id", target = "organizerId")
+    @Mapping(source = "location.id", target = "locationId")
     EventDto toEventDto(Event event);
 
-    @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent") 
-    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent") 
-    @Mapping(target = "createdAt", ignore = true) 
+    @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
+    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
+    @Mapping(target = "currentParticipants", ignore = true) // <-- Игнорируем currentParticipants при маппинге DTO -> Entity
+    @Mapping(target = "createdAt", ignore = true) // Игнорируем поля, устанавливаемые вручную
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "status", ignore = true) // Игнорируем статус при создании/редактировании через DTO
     Event toEvent(EventDto eventDto);
 
     

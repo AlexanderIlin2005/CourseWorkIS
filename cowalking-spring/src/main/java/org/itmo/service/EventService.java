@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,28 +37,28 @@ public class EventService {
 
     @Transactional
     public Event save(Event event, User currentUser) {
-        
-        if (!currentUser.getRole().equals(UserRole.ORGANIZER) &&
+        // Проверка прав: только организатор или админ может сохранять
+        if (event.getId() != null && !event.getOrganizer().getId().equals(currentUser.getId()) &&
                 !currentUser.getRole().equals(UserRole.ADMIN)) {
-            throw new SecurityException("Only organizers and admins can create events");
+            throw new SecurityException("You can only edit events you organized");
         }
 
-        
+        // Проверка логики: startTime < endTime
+        if (event.getStartTime() != null && event.getEndTime() != null && event.getStartTime().isAfter(event.getEndTime())) {
+            throw new IllegalArgumentException("Start time must be before end time");
+        }
+
+        // Если создаем новый, устанавливаем организатора
         if (event.getId() == null) {
             event.setOrganizer(currentUser);
-        } else {
-            
-            Event existingEvent = eventRepository.findById(event.getId())
-                    .orElseThrow(() -> new RuntimeException("Event not found"));
-            if (!existingEvent.getOrganizer().getId().equals(currentUser.getId()) &&
-                    !currentUser.getRole().equals(UserRole.ADMIN)) {
-                throw new SecurityException("You can only edit events you organized");
-            }
-            event.setOrganizer(existingEvent.getOrganizer());
         }
+
+        // Обновляем время обновления
+        event.setUpdatedAt(LocalDateTime.now());
 
         return eventRepository.save(event);
     }
+
 
     @Transactional
     public void deleteById(Long id, User currentUser) {
