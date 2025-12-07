@@ -6,32 +6,47 @@ import org.itmo.model.Event;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.itmo.model.Location; // Импортируем Location
 
 @Mapper(componentModel = "spring", uses = {UserMapper.class, LocationMapper.class})
 public interface EventMapper {
 
-    @Mapping(source = "organizer.id", target = "organizerId")
-    @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппинг имени организатора при чтении (Event -> EventDto)
-    @Mapping(source = "location.id", target = "locationId")
-    @Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации при чтении (Event -> EventDto)
-    @Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации при чтении (Event -> EventDto)
-    @Mapping(source = "startTime", target = "startTime", ignore = true) // <-- Игнорируем при маппинге Event -> EventDto (преобразование в строку вручную)
-    @Mapping(source = "endTime", target = "endTime", ignore = true)     // <-- Игнорируем при маппинге Event -> EventDto (преобразование в строку вручную)
+    @Mapping(source = "organizer.id", target = "organizerId") // <-- Маппинг ID организатора
+    @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппинг имени организатора в DTO
+    @Mapping(source = "location.id", target = "locationId")   // <-- Маппинг ID локации
+    @Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации в DTO
+    @Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации в DTO
+        // startTime и endTime (String в DTO) будут маппиться в LocalDateTime в Event через конвертеры, если они определены
+        // Или если в Event startTime/endTime String, то маппятся напрямую
+        // Или если в Event LocalDateTime, и в DTO LocalDateTime, то маппятся напрямую
+        // Или, если в Event LocalDateTime, и в DTO String, то нужен @Named метод или @Converter для преобразования
+        // Сейчас, после ваших изменений, в Event LocalDateTime, в DTO String.
+        // MapStruct не может сам преобразовать String <-> LocalDateTime без указания способа.
+        // Поэтому вручную в контроллере используем eventDto.getParsedStartTime/EndTime().
+        // Убираем startTime и endTime из маппинга @Mapping.
+        // startTime и endTime будут установлены вручную в контроллере
     EventDto toEventDto(Event event);
 
-    @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
-    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
-    @Mapping(target = "startTime", ignore = true) // <-- Игнорируем startTime при маппинге EventDto -> Event (устанавливается в контроллере)
-    @Mapping(target = "endTime", ignore = true)   // <-- Игнорируем endTime при маппинге EventDto -> Event (устанавливается в контроллере)
+    @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent") // <-- Маппинг объекта организатора по ID
+    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent") // <-- Маппинг объекта локации по ID
+    // startTime и endTime (String в DTO) будут маппиться в LocalDateTime в Event через конвертеры, если они определены
+    // Или если в Event startTime/endTime String, то маппятся напрямую
+    // Или если в Event LocalDateTime, и в DTO LocalDateTime, то маппятся напрямую
+    // Или, если в Event LocalDateTime, и в DTO String, то нужен @Named метод или @Converter для преобразования
+    // Сейчас, после ваших изменений, в Event LocalDateTime, в DTO String.
+    // MapStruct не может сам преобразовать String <-> LocalDateTime без указания способа.
+    // Поэтому вручную в контроллере используем eventDto.getParsedStartTime/EndTime().
+    // Убираем startTime и endTime из маппинга @Mapping.
+    // startTime и endTime будут установлены вручную в контроллере
+    // --- УБРАНО: @Mapping(target = "startTime", ignore = true) ---
+    // --- УБРАНО: @Mapping(target = "endTime", ignore = true) ---
     // --- УБРАНО: @Mapping(target = "locationName", ignore = true) ---
     // --- УБРАНО: @Mapping(target = "locationAddress", ignore = true) ---
     // --- УБРАНО: @Mapping(target = "organizerUsername", ignore = true) ---
-    // Эти поля НЕ существуют в Event, их нельзя устанавливать через MapStruct при маппинге DTO -> Entity.
-    @Mapping(target = "createdAt", ignore = true) // Игнорирование полей, устанавливаемых вручную
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "status", ignore = true) // Игнорируем status при создании/редактировании через DTO
-    @Mapping(target = "currentParticipants", ignore = true) // Игнорируем currentParticipants при маппинге DTO -> Entity
+    // --- КОНЕЦ УБРАНОГО ---
+    @Mapping(target = "createdAt", ignore = true) // <-- Игнорировать createdAt при маппинге EventDto -> Event
+    @Mapping(target = "updatedAt", ignore = true) // <-- Игнорировать updatedAt при маппинге EventDto -> Event
+    @Mapping(target = "status", ignore = true) // <-- Игнорировать status при маппинге EventDto -> Event
+    @Mapping(target = "currentParticipants", ignore = true) // <-- Игнорировать currentParticipants при маппинге EventDto -> Event
     Event toEvent(EventDto eventDto);
 
     // --- ИМЕНОВАННЫЕ МЕТОДЫ для маппинга связей ---

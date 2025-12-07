@@ -5,8 +5,8 @@ import org.itmo.model.Event;
 import org.itmo.model.enums.EventStatus; // Импортируем внешний enum
 import lombok.Data;
 
-import java.time.LocalDateTime; // Используем LocalDateTime
-import java.time.format.DateTimeFormatter; // Для форматирования
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Data
 public class EventDto {
@@ -19,8 +19,8 @@ public class EventDto {
     private String locationName; // <-- Добавим поле для имени локации
     private String locationAddress; // <-- Добавим поле для адреса локации
     // --- ИСПРАВЛЕНО: используем String для startTime и endTime ---
-    private String startTime; // <-- Теперь строка
-    private String endTime;   // <-- Теперь строка
+    private String startTime; // <-- Теперь строка, формат yyyy-MM-ddTHH:mm
+    private String endTime;   // <-- Теперь строка, формат yyyy-MM-ddTHH:mm
     // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     private Integer maxParticipants;
     private Integer currentParticipants;
@@ -45,24 +45,27 @@ public class EventDto {
             this.locationAddress = event.getLocation().getAddress(); // <-- Сохраняем адрес
         }
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-        // --- ИСПРАВЛЕНО: преобразуем LocalDateTime в строку ---
+        // --- ИЗМЕНЕНО: преобразуем LocalDateTime в строку ---
         if (event.getStartTime() != null) {
-            this.startTime = event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")); // Формат datetime-local
+            // Используем формат, подходящий для datetime-local input (без секунд)
+            this.startTime = event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
         }
         if (event.getEndTime() != null) {
             this.endTime = event.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
         }
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         this.maxParticipants = event.getMaxParticipants();
         this.currentParticipants = event.getCurrentParticipants();
         this.status = event.getStatus(); // Теперь использует внешний enum
     }
 
-    // --- МЕТОДЫ для преобразования строк обратно в LocalDateTime при сохранении ---
+    // --- ИСПРАВЛЕНО: МЕТОДЫ для преобразования строк обратно в LocalDateTime при сохранении ---
+    // Формат строки соответствует datetime-local input: yyyy-MM-ddTHH:mm
     public LocalDateTime getParsedStartTime() {
         if (startTime == null || startTime.isEmpty()) {
             return null;
         }
+        // ИСПРАВЛЕНО: используем формат yyyy-MM-dd'T'HH:mm
         return LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
     }
 
@@ -70,7 +73,8 @@ public class EventDto {
         if (endTime == null || endTime.isEmpty()) {
             return null;
         }
+        // ИСПРАВЛЕНО: используем формат yyyy-MM-dd'T'HH:mm
         return LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
     }
-    // --- КОНЕЦ МЕТОДОВ ---
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 }
