@@ -2,11 +2,10 @@
 package org.itmo.dto;
 
 import org.itmo.model.Event;
-import org.itmo.model.enums.EventStatus; // Импортируем enum
+import org.itmo.model.enums.EventStatus;
 import lombok.Data;
 
-import java.time.LocalDateTime; // <-- Используем LocalDateTime
-import java.time.ZonedDateTime; // <-- Можем убрать, если не используется в DTO для других целей
+import java.time.LocalDateTime;
 
 @Data
 public class EventDto {
@@ -14,14 +13,18 @@ public class EventDto {
     private String title;
     private String description;
     private Long organizerId;
-    private Long locationId;
-    private LocalDateTime startTime; // <-- Изменено на LocalDateTime
-    private LocalDateTime endTime;   // <-- Изменено на LocalDateTime
+    // --- ИЗМЕНЕНО: добавлено locationName, убрано location ---
+    private String locationName; // <-- Добавлено поле для имени локации
+    private Long locationId;     // <-- Оставлено ID локации
+    private String locationAddress; // <-- Добавить
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private Integer maxParticipants;
     private Integer currentParticipants;
-    private EventStatus status; // Используем внешний enum
+    private EventStatus status;
 
-    // Конструкторы, если требуются
+    // Конструкторы
     public EventDto() {}
 
     public EventDto(Event event) {
@@ -29,9 +32,14 @@ public class EventDto {
         this.title = event.getTitle();
         this.description = event.getDescription();
         this.organizerId = event.getOrganizer().getId();
-        this.locationId = event.getLocation().getId();
-        this.startTime = event.getStartTime(); // Теперь это LocalDateTime
-        this.endTime = event.getEndTime();     // Теперь это LocalDateTime
+        // --- ИЗМЕНЕНО: установка locationName и locationId ---
+        if (event.getLocation() != null) { // Проверка на null
+            this.locationName = event.getLocation().getName(); // Устанавливаем имя локации
+            this.locationId = event.getLocation().getId();     // Устанавливаем ID локации
+        }
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+        this.startTime = event.getStartTime();
+        this.endTime = event.getEndTime();
         this.maxParticipants = event.getMaxParticipants();
         this.currentParticipants = event.getCurrentParticipants();
         this.status = event.getStatus();

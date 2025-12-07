@@ -40,7 +40,9 @@
 
         <div class="event-details">
             <p><strong>Description:</strong> <span th:text="${event.description}">Description</span></p>
-            <p><strong>Location:</strong> <span th:text="${event.location.name} + ' (' + ${event.location.address} + ')'">Location</span></p>
+            <!-- --- ИЗМЕНЕНО: используем locationName и event.location.address --- -->
+            <p><strong>Location:</strong> <span th:text="${event.locationName} + ' (' + ${event.locationAddress} + ')'">Location</span></p>
+            <!-- --- КОНЕЦ ИЗМЕНЕНИЯ --- -->
             <p><strong>Start Time:</strong> <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
             <p><strong>End Time:</strong> <span th:text="${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}">End Time</span></p>
             <p><strong>Participants:</strong> <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
