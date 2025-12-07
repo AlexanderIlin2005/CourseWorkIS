@@ -63,12 +63,12 @@
 
             <div class="form-group">
                 <label for="startTime">Start Time:</label>
-                <input type="datetime-local" id="startTime" th:field="*{startTime}">
+                <input type="datetime-local" id="startTime" th:field="*{startTime}" required> <!-- th:field будет работать с String из DTO -->
             </div>
 
             <div class="form-group">
                 <label for="endTime">End Time:</label>
-                <input type="datetime-local" id="endTime" th:field="*{endTime}">
+                <input type="datetime-local" id="endTime" th:field="*{endTime}" required> <!-- th:field будет работать с String из DTO -->
             </div>
 
             <div class="form-group">

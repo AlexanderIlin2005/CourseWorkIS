@@ -32,8 +32,10 @@
             <!-- --- ИЗМЕНЕНО: используем locationName и locationAddress из DTO --- -->
             <p><strong>Location:</strong> <span th:text="${event.locationName} + ' (' + ${event.locationAddress} + ')'">Location</span></p>
             <!-- --- КОНЕЦ ИЗМЕНЕНИЯ --- -->
-            <p><strong>Start Time:</strong> <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
-            <p><strong>End Time:</strong> <span th:text="${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}">End Time</span></p>
+            <!-- --- ИСПРАВЛЕНО: отображаем startTime и endTime как строки --- -->
+            <p><strong>Start Time:</strong> <span th:text="${event.startTime}">Start Time</span></p>
+            <p><strong>End Time:</strong> <span th:text="${event.endTime}">End Time</span></p>
+            <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
             <p><strong>Participants:</strong> <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
             <!-- --- ИЗМЕНЕНО: используем organizerUsername из DTO --- -->
             <p><strong>Organizer:</strong> <span th:text="${event.organizerUsername}">Organizer</span></p>

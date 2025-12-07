@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,8 +52,6 @@ public class EventController {
     @PostMapping("/create")
     public String createEvent(@ModelAttribute EventDto eventDto, Model model) {
         // --- ИМИТАЦИЯ: Получаем текущего пользователя ---
-        // В реальности нужно хранить ID/имя пользователя в сессии или cookies
-        // Пока используем фиктивного пользователя, например, admin
         User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
                 .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
         // --- КОНЕЦ ИМИТАЦИИ ---
@@ -62,6 +61,10 @@ public class EventController {
         if (event.getId() == null) { // Если создается новый
             event.setStatus(EventStatus.ACTIVE); // Используем внешний enum
             event.setOrganizer(fakeCurrentUser); // Устанавливаем фиктивного организатора
+            // --- ИЗМЕНЕНО: Устанавливаем parsed startTime и endTime ---
+            event.setStartTime(eventDto.getParsedStartTime()); // <-- Устанавливаем LocalDateTime
+            event.setEndTime(eventDto.getParsedEndTime());     // <-- Устанавливаем LocalDateTime
+            // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         }
 
         try {
@@ -104,6 +107,16 @@ public class EventController {
 
         // Преобразуем сущность Event в DTO для формы
         EventDto eventDto = eventMapper.toEventDto(event);
+
+        // --- ДОБАВЛЕНО: Убедимся, что startTime и endTime установлены в DTO ---
+        if (event.getStartTime() != null) {
+            eventDto.setStartTime(event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+        }
+        if (event.getEndTime() != null) {
+            eventDto.setEndTime(event.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+        }
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
         model.addAttribute("event", eventDto); // Передаем DTO в модель
         model.addAttribute("locations", locationService.findAll());
         return "events/edit";
@@ -115,8 +128,6 @@ public class EventController {
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
         // --- ИМИТАЦИЯ: Проверка прав ---
-        // В реальности нужно проверить, является ли текущий пользователь организатором или админом
-        // Пока просто проверим, что текущий пользователь - admin
         User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
                 .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
 
@@ -127,13 +138,19 @@ public class EventController {
 
         // Преобразуем DTO в сущность Event
         Event event = eventMapper.toEvent(eventDto);
-        // --- ИСПРАВЛЕНО: Сохраняем ID, организатора и currentParticipants из существующего события ---
+        // Сохраняем ID и организатора из существующего события
         event.setId(id);
-        event.setOrganizer(existingEvent.getOrganizer()); // Сохраняем оригинального организатора
-        event.setCurrentParticipants(existingEvent.getCurrentParticipants()); // <-- Сохраняем количество участников
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        event.setOrganizer(existingEvent.getOrganizer());
+
+        // --- ДОБАВЛЕНО: Сохраняем currentParticipants ---
+        event.setCurrentParticipants(existingEvent.getCurrentParticipants());
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+        // --- ИЗМЕНЕНО: Устанавливаем parsed startTime и endTime ---
+        event.setStartTime(eventDto.getParsedStartTime()); // <-- Устанавливаем LocalDateTime из DTO
+        event.setEndTime(eventDto.getParsedEndTime());     // <-- Устанавливаем LocalDateTime из DTO
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         // Не сохраняем status, если не предполагается его изменение через редактирование
-        // event.setStatus(existingEvent.getStatus()); // <-- Опционально, если status не редактируется
 
         try {
             Event updatedEvent = eventService.save(event, fakeCurrentUser);

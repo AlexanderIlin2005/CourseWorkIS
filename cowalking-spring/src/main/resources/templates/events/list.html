@@ -46,10 +46,12 @@
             <div class="event-card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p th:text="${event.description}">Event Description</p>
-                <!-- --- ИЗМЕНЕНО: используем locationName из DTO --- -->
+                <!-- --- ИСПРАВЛЕНО: используем locationName из DTO --- -->
                 <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
-                <!-- --- КОНЕЦ ИЗМЕНЕНИЯ --- -->
-                <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
+                <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
+                <!-- --- ИСПРАВЛЕНО: отображаем startTime как строку --- -->
+                <p>Time: <span th:text="${event.startTime}">Start Time</span></p>
+                <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                 <!-- --- ИЗМЕНЕНО: используем organizerUsername из DTO --- -->
                 <p>Organizer: <span th:text="${event.organizerUsername}">Organizer Name</span></p>

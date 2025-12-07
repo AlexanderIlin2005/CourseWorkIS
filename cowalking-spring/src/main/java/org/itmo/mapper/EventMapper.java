@@ -11,22 +11,27 @@ import org.itmo.model.Location; // Импортируем Location
 @Mapper(componentModel = "spring", uses = {UserMapper.class, LocationMapper.class})
 public interface EventMapper {
 
-    // --- ИЗМЕНЕНО: маппинг organizer.username в organizerUsername ---
-    @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппим имя организатора
-    @Mapping(source = "organizer.id", target = "organizerId")             // <-- Маппим ID организатора
-    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-    // --- ИЗМЕНЕНО: маппинг location.name и location.address ---
-    @Mapping(source = "location.name", target = "locationName")      // <-- Маппим имя локации
-    @Mapping(source = "location.address", target = "locationAddress") // <-- Маппим адрес локации
-    @Mapping(source = "location.id", target = "locationId")          // <-- Маппим ID локации
-    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+    @Mapping(source = "organizer.id", target = "organizerId")
+    @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппинг имени организатора при чтении (Event -> EventDto)
+    @Mapping(source = "location.id", target = "locationId")
+    @Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации при чтении (Event -> EventDto)
+    @Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации при чтении (Event -> EventDto)
+    @Mapping(source = "startTime", target = "startTime", ignore = true) // <-- Игнорируем при маппинге Event -> EventDto (преобразование в строку вручную)
+    @Mapping(source = "endTime", target = "endTime", ignore = true)     // <-- Игнорируем при маппинге Event -> EventDto (преобразование в строку вручную)
     EventDto toEventDto(Event event);
 
     @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
     @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
-    @Mapping(target = "createdAt", ignore = true) // Игнорируем поля, устанавливаемые вручную
+    @Mapping(target = "startTime", ignore = true) // <-- Игнорируем startTime при маппинге EventDto -> Event (устанавливается в контроллере)
+    @Mapping(target = "endTime", ignore = true)   // <-- Игнорируем endTime при маппинге EventDto -> Event (устанавливается в контроллере)
+    // --- УБРАНО: @Mapping(target = "locationName", ignore = true) ---
+    // --- УБРАНО: @Mapping(target = "locationAddress", ignore = true) ---
+    // --- УБРАНО: @Mapping(target = "organizerUsername", ignore = true) ---
+    // Эти поля НЕ существуют в Event, их нельзя устанавливать через MapStruct при маппинге DTO -> Entity.
+    @Mapping(target = "createdAt", ignore = true) // Игнорирование полей, устанавливаемых вручную
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "status", ignore = true) // Игнорируем статус при создании/редактировании через DTO
+    @Mapping(target = "status", ignore = true) // Игнорируем status при создании/редактировании через DTO
+    @Mapping(target = "currentParticipants", ignore = true) // Игнорируем currentParticipants при маппинге DTO -> Entity
     Event toEvent(EventDto eventDto);
 
     // --- ИМЕНОВАННЫЕ МЕТОДЫ для маппинга связей ---

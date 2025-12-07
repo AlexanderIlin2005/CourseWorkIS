@@ -2,55 +2,75 @@
 package org.itmo.dto;
 
 import org.itmo.model.Event;
-import org.itmo.model.enums.EventStatus;
+import org.itmo.model.enums.EventStatus; // Импортируем внешний enum
 import lombok.Data;
 
 import java.time.LocalDateTime; // Используем LocalDateTime
+import java.time.format.DateTimeFormatter; // Для форматирования
 
 @Data
 public class EventDto {
     private Long id;
     private String title;
     private String description;
-    // --- ИЗМЕНЕНО: добавлен organizerUsername, убран organizer ---
-    private String organizerUsername; // <-- Добавлено поле для имени организатора
-    private Long organizerId;         // <-- Оставлено ID организатора
-    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-    // --- ИЗМЕНЕНО: добавлены locationName и locationAddress, убран location ---
-    private String locationName;      // <-- Добавлено поле для имени локации
-    private String locationAddress;   // <-- Добавлено поле для адреса локации
-    private Long locationId;          // <-- Оставлено ID локации
-    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-    private LocalDateTime startTime; // Теперь LocalDateTime
-    private LocalDateTime endTime;   // Теперь LocalDateTime
+    private Long organizerId;
+    private String organizerUsername; // <-- Добавим поле для имени организатора
+    private Long locationId;
+    private String locationName; // <-- Добавим поле для имени локации
+    private String locationAddress; // <-- Добавим поле для адреса локации
+    // --- ИСПРАВЛЕНО: используем String для startTime и endTime ---
+    private String startTime; // <-- Теперь строка
+    private String endTime;   // <-- Теперь строка
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     private Integer maxParticipants;
     private Integer currentParticipants;
     private EventStatus status;
 
-    // Конструкторы
     public EventDto() {}
 
     public EventDto(Event event) {
         this.id = event.getId();
         this.title = event.getTitle();
         this.description = event.getDescription();
-        // --- ИЗМЕНЕНО: установка organizerUsername и organizerId ---
-        if (event.getOrganizer() != null) { // Проверка на null
-            this.organizerUsername = event.getOrganizer().getUsername(); // Устанавливаем имя организатора
-            this.organizerId = event.getOrganizer().getId();             // Устанавливаем ID организатора
+        // --- ИЗМЕНЕНО: сохраняем ID и имя организатора ---
+        if (event.getOrganizer() != null) {
+            this.organizerId = event.getOrganizer().getId();
+            this.organizerUsername = event.getOrganizer().getUsername(); // <-- Сохраняем имя
         }
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-        // --- ИЗМЕНЕНО: установка locationName, locationAddress и locationId ---
-        if (event.getLocation() != null) { // Проверка на null
-            this.locationName = event.getLocation().getName();      // Устанавливаем имя локации
-            this.locationAddress = event.getLocation().getAddress(); // Устанавливаем адрес локации
-            this.locationId = event.getLocation().getId();          // Устанавливаем ID локации
+        // --- ИЗМЕНЕНО: сохраняем ID, имя и адрес локации ---
+        if (event.getLocation() != null) {
+            this.locationId = event.getLocation().getId();
+            this.locationName = event.getLocation().getName(); // <-- Сохраняем имя
+            this.locationAddress = event.getLocation().getAddress(); // <-- Сохраняем адрес
         }
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-        this.startTime = event.getStartTime();
-        this.endTime = event.getEndTime();
+        // --- ИСПРАВЛЕНО: преобразуем LocalDateTime в строку ---
+        if (event.getStartTime() != null) {
+            this.startTime = event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")); // Формат datetime-local
+        }
+        if (event.getEndTime() != null) {
+            this.endTime = event.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+        }
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
         this.maxParticipants = event.getMaxParticipants();
         this.currentParticipants = event.getCurrentParticipants();
-        this.status = event.getStatus();
+        this.status = event.getStatus(); // Теперь использует внешний enum
     }
+
+    // --- МЕТОДЫ для преобразования строк обратно в LocalDateTime при сохранении ---
+    public LocalDateTime getParsedStartTime() {
+        if (startTime == null || startTime.isEmpty()) {
+            return null;
+        }
+        return LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+    }
+
+    public LocalDateTime getParsedEndTime() {
+        if (endTime == null || endTime.isEmpty()) {
+            return null;
+        }
+        return LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+    }
+    // --- КОНЕЦ МЕТОДОВ ---
 }
