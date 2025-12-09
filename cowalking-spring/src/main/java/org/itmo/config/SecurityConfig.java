@@ -1,7 +1,6 @@
-// src/main/java/org/itmo/config/SecurityConfig.java
 package org.itmo.config;
 
-import org.itmo.service.UserService;
+import org.itmo.service.UserService; // Ensure imported
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,28 +17,34 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService;
+    private UserService userService; // Service for UserDetailsService
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; // Service for PasswordEncoder
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return userService;
+        return userService; // Return your UserService (UserDetailsService)
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .anyRequest().permitAll() // Разрешаем ВСЕ запросы без аутентификации
+                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Allow access
+                        .requestMatchers("/events", "/events/{id}").permitAll() // Allow viewing events
+                        .requestMatchers("/events/create", "/events/{id}/edit", "/events/{id}/delete").authenticated() // Require authentication for CRUD ops
+                        .requestMatchers("/participations/join/**", "/participations/leave/**").authenticated() // Require authentication for participation
+                        .requestMatchers("/reports/create").authenticated() // Require authentication for reporting
+                        .requestMatchers("/reports").hasRole("ADMIN") // Only admin can view reports
+                        .requestMatchers("/reports/{id}/resolve").hasRole("ADMIN") // Only admin can resolve
+                        .anyRequest().authenticated() // All other require authentication
                 )
                 .formLogin((form) -> form
-                        .loginPage("/login")
-                        .permitAll()
+                        .loginPage("/login") // Specify login page
+                        .permitAll() // Allow everyone access to login page
                 )
-                .logout(LogoutConfigurer::permitAll)
-                .csrf().disable(); // Отключаем CSRF для упрощения (можно включить, если нужно)
+                .logout(LogoutConfigurer::permitAll); // Allow everyone to logout
 
         return http.build();
     }

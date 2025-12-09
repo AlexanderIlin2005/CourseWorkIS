@@ -1,6 +1,5 @@
-<!-- src/main/resources/templates/reports/create.html -->
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,58 +7,64 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<header>
-    <nav>
-        <div class="nav-container">
-            <a href="/" class="logo">CoWalking</a>
-            <ul class="nav-menu">
-                <li><a href="/events">Events</a></li>
-                <li><a href="/locations">Locations</a></li>
-                <!-- --- УБРАНО: Spring Security проверки --- -->
-                <!-- <li th:if="${#authentication != null and #authentication.principal != null}">
-                    <a th:href="@{/users/profile}" th:text="${#authentication.principal.username}">Profile</a>
-                </li>
-                <li th:if="${#authentication != null and #authentication.principal != null}">
-                    <form th:action="@{/logout}" method="post" style="display:inline;">
-                        <button type="submit">Logout</button>
-                    </form>
-                </li> -->
-                <!-- --- КОНЕЦ УБРАНОГО --- -->
+    <header>
+        <nav>
+            <div class="nav-container">
+                <a href="/" class="logo">CoWalking</a>
+                <ul class="nav-menu">
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="/locations">Locations</a></li>
+                    <li sec:authorize="isAuthenticated()">
+                        <a sec:authentication="principal.username" href="/users/profile">Profile</a>
+                    </li>
+                    <li sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" style="display:inline;">
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                    <li sec:authorize="!isAuthenticated()">
+                        <a href="/login">Login</a>
+                    </li>
+                    <li sec:authorize="!isAuthenticated()">
+                        <a href="/registration">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
 
-                <!-- --- ИМИТАЦИЯ: Всегда показываем Login/Registration --- -->
-                <li><a href="/login">Login</a></li>
-                <li><a href="/registration">Register</a></li>
-            </ul>
+    <main>
+        <div class="container">
+            <h1>Create Report</h1>
+
+            <div th:if="${error}" class="error" th:text="${error}">Error message</div>
+            <div th:if="${message}" class="success" th:text="${message}">Success message</div>
+
+            <form th:action="@{/reports/create}" method="post" th:object="${report}">
+                <div class="form-group">
+                    <label for="reportedUserId">Reported User (Optional):</label>
+                    <select id="reportedUserId" th:field="*{reportedUserId}">
+                        <option value="">Select a user</option>
+                        <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.username}">User</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventId">Event (Optional):</label>
+                    <select id="eventId" th:field="*{eventId}">
+                        <option value="">Select an event</option>
+                        <option th:each="event : ${events}" th:value="${event.id}" th:text="${event.title}">Event</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reason">Reason:</label>
+                    <textarea id="reason" th:field="*{reason}" rows="5" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">Submit Report</button>
+            </form>
         </div>
-    </nav>
-</header>
-
-<main>
-    <div class="container">
-        <h1>Create Report</h1>
-
-        <div th:if="${error}" class="error" th:text="${error}">Error message</div>
-        <div th:if="${message}" class="success" th:text="${message}">Success message</div>
-
-        <form th:action="@{/reports/create}" method="post" th:object="${report}">
-            <div class="form-group">
-                <label for="reportedUserId">Reported User (Optional):</label>
-                <input type="number" id="reportedUserId" th:field="*{reportedUserId}">
-            </div>
-
-            <div class="form-group">
-                <label for="eventId">Event (Optional):</label>
-                <input type="number" id="eventId" th:field="*{eventId}">
-            </div>
-
-            <div class="form-group">
-                <label for="reason">Reason:</label>
-                <textarea id="reason" th:field="*{reason}" rows="5" required></textarea>
-            </div>
-
-            <button type="submit" class="btn-primary">Submit Report</button>
-        </form>
-    </div>
-</main>
+    </main>
 </body>
 </html>

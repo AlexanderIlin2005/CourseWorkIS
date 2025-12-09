@@ -1,19 +1,13 @@
-// src/main/java/org/itmo/model/Event.java
 package org.itmo.model;
 
 import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
-import org.itmo.model.enums.EventStatus; // Импортируем enum
+import org.itmo.model.enums.EventStatus; // Импортируем внешний enum
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime; // <-- Используем LocalDateTime
-import java.util.Collection;
-import java.util.Collections;
+import java.time.LocalDateTime; // Используем LocalDateTime
 
 @Entity
 @Table(name = "cowalking_events")
@@ -56,14 +50,16 @@ public class Event {
     @Column(name = "current_participants", nullable = false)
     private Integer currentParticipants = 0;
 
-    @Column(name = "created_at")
     @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер для createdAt
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at")
     @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер для updatedAt
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    // --- ИСПРАВЛЕНО: используем внешний enum ---
     @Enumerated(EnumType.STRING)
-    private EventStatus status = EventStatus.ACTIVE; // Используем внешний enum
+    private EventStatus status = EventStatus.ACTIVE; // <-- Используем внешний enum
+    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 }

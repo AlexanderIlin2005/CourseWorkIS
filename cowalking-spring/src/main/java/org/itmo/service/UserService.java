@@ -1,18 +1,17 @@
-
 package org.itmo.service;
 
 import org.itmo.model.User;
 import org.itmo.model.enums.UserRole;
 import org.itmo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory; 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,49 +19,46 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class); 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public User save(User user) {
-        logger.info("Saving user: {}", user.getUsername()); 
-        String rawPassword = user.getPassword();
-        logger.debug("Raw password before encoding: {}", rawPassword); 
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        logger.debug("Encoded password: {}", encodedPassword); 
-        user.setPassword(encodedPassword);
-        User savedUser = userRepository.save(user);
-        logger.info("Saved user with ID: {}", savedUser.getId());
-        return savedUser;
+        // Encode password if it's not already encoded (e.g., during registration)
+        if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) { // Assuming BCrypt starts with $2a$
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        return userRepository.save(user);
     }
 
     public Optional<User> findById(Long id) {
-        logger.debug("Finding user by ID: {}", id); 
         return userRepository.findById(id);
     }
 
     public Optional<User> findByUsername(String username) {
-        logger.debug("Finding user by username: {}", username); 
         return userRepository.findByUsername(username);
     }
 
+    // --- ADDED: Method to find all users ---
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+    // --- END OF ADDITION ---
+
+    // --- ADDED: Method to find by email ---
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+    // --- END OF ADDITION ---
+
     public String encodePassword(String rawPassword) {
-        logger.debug("Encoding password: {}", rawPassword); 
-        String encoded = passwordEncoder.encode(rawPassword);
-        logger.debug("Encoded password result: {}", encoded); 
-        return encoded;
+        return passwordEncoder.encode(rawPassword);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.info("Loading user by username: {}", username); 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    logger.warn("User not found: {}", username); 
-                    return new UsernameNotFoundException("User not found: " + username);
-                });
-        logger.info("Found user: {} with role: {}", user.getUsername(), user.getRole()); 
-        logger.debug("User password hash: {}", user.getPassword()); 
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         return user;
     }
 }

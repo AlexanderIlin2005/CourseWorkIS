@@ -1,23 +1,23 @@
-// src/main/java/org/itmo/controller/EventController.java
 package org.itmo.controller;
 
 import org.itmo.dto.EventDto;
 import org.itmo.model.Event;
 import org.itmo.model.User;
-import org.itmo.model.enums.EventStatus;
+import org.itmo.model.enums.EventStatus; // Import the external enum
 import org.itmo.service.EventService;
 import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
 import org.itmo.mapper.EventMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/events")
@@ -26,53 +26,63 @@ public class EventController {
 
     private final EventService eventService;
     private final LocationService locationService;
-    private final EventMapper eventMapper; // Используем маппер
-
-    @Autowired
-    private UserService userService; // <-- Внедряем UserService
+    private final UserService userService; // <-- Inject UserService for fake user simulation
+    private final EventMapper eventMapper; // <-- Inject EventMapper
 
     @GetMapping
     public String listEvents(Model model) {
         List<Event> events = eventService.findAll();
-        // Преобразуем список Event в список EventDto
+        // Convert list of Event to list of EventDto
         List<EventDto> eventDtos = events.stream()
-                .map(eventMapper::toEventDto) // Используем маппер
-                .collect(java.util.stream.Collectors.toList());
-        model.addAttribute("events", eventDtos); // Передаем DTO в модель
+                .map(eventMapper::toEventDto) // Use mapper
+                .collect(Collectors.toList());
+        model.addAttribute("events", eventDtos); // Pass DTO to model
         return "events/list";
     }
 
     @GetMapping("/create")
     public String createEventForm(Model model) {
-        model.addAttribute("event", new EventDto()); // Передаем DTO в модель
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
+             return "redirect:/login";
+        }
+        User currentUser = (User) auth.getPrincipal();
+
+        // Check permissions: only ADMIN or ORGANIZER can create
+        if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ORGANIZER) &&
+            !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+            return "redirect:/events";
+        }
+
+        model.addAttribute("event", new EventDto()); // Pass DTO to model
         model.addAttribute("locations", locationService.findAll());
         return "events/create";
     }
 
     @PostMapping("/create")
     public String createEvent(@ModelAttribute EventDto eventDto, Model model) {
-        // --- ИМИТАЦИЯ: Получаем текущего пользователя ---
-        User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
-                .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
-        // --- КОНЕЦ ИМИТАЦИИ ---
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
 
-        // Преобразуем DTO в сущность Event
+        // Check permissions: only ADMIN or ORGANIZER can create
+        if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ORGANIZER) &&
+            !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+            return "redirect:/events";
+        }
+
+        // Convert DTO to Event entity
         Event event = eventMapper.toEvent(eventDto);
-        if (event.getId() == null) { // Если создается новый
-            event.setStatus(EventStatus.ACTIVE); // Используем внешний enum
-            event.setOrganizer(fakeCurrentUser); // Устанавливаем фиктивного организатора
-            // --- ИЗМЕНЕНО: Устанавливаем parsed startTime и endTime ---
-            event.setStartTime(eventDto.getParsedStartTime()); // <-- Устанавливаем LocalDateTime
-            event.setEndTime(eventDto.getParsedEndTime());     // <-- Устанавливаем LocalDateTime
-            // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+        if (event.getId() == null) { // If creating new
+            event.setStatus(EventStatus.ACTIVE); // Use external enum
+            event.setOrganizer(currentUser); // Set current user as organizer
         }
 
         try {
-            Event savedEvent = eventService.save(event, fakeCurrentUser);
+            Event savedEvent = eventService.save(event, currentUser);
             return "redirect:/events/" + savedEvent.getId();
         } catch (Exception e) {
             model.addAttribute("error", "Creation failed: " + e.getMessage());
-            // В случае ошибки, снова передаем DTO в модель
+            // On error, pass DTO back to model
             model.addAttribute("event", eventDto);
             model.addAttribute("locations", locationService.findAll());
             return "events/create";
@@ -83,9 +93,9 @@ public class EventController {
     public String eventDetails(@PathVariable Long id, Model model) {
         Event event = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
-        // Преобразуем сущность Event в DTO для представления
+        // Convert Event entity to DTO for presentation
         EventDto eventDto = eventMapper.toEventDto(event);
-        model.addAttribute("event", eventDto); // Передаем DTO в модель
+        model.addAttribute("event", eventDto); // Pass DTO to model
         return "events/details";
     }
 
@@ -94,30 +104,18 @@ public class EventController {
         Event event = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // --- ИМИТАЦИЯ: Проверка прав ---
-        // В реальности нужно проверить, является ли текущий пользователь организатором или админом
-        // Пока просто проверим, что текущий пользователь - admin
-        User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
-                .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
 
-        if (!event.getOrganizer().getId().equals(fakeCurrentUser.getId())) {
-            return "redirect:/events/" + id; // Не организатор - не редактирует
+        // Check permissions: only organizer or admin can edit
+        if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
+            !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+            return "redirect:/events/" + id;
         }
-        // --- КОНЕЦ ИМИТАЦИИ ---
 
-        // Преобразуем сущность Event в DTO для формы
+        // Convert Event entity to DTO for form
         EventDto eventDto = eventMapper.toEventDto(event);
-
-        // --- ДОБАВЛЕНО: Убедимся, что startTime и endTime установлены в DTO ---
-        if (event.getStartTime() != null) {
-            eventDto.setStartTime(event.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
-        }
-        if (event.getEndTime() != null) {
-            eventDto.setEndTime(event.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
-        }
-        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
-
-        model.addAttribute("event", eventDto); // Передаем DTO в модель
+        model.addAttribute("event", eventDto); // Pass DTO to model
         model.addAttribute("locations", locationService.findAll());
         return "events/edit";
     }
@@ -127,37 +125,27 @@ public class EventController {
         Event existingEvent = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // --- ИМИТАЦИЯ: Проверка прав ---
-        User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
-                .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
 
-        if (!existingEvent.getOrganizer().getId().equals(fakeCurrentUser.getId())) {
-            return "redirect:/events/" + id; // Не организатор - не редактирует
+        // Check permissions: only organizer or admin can edit
+        if (!existingEvent.getOrganizer().getId().equals(currentUser.getId()) &&
+            !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+            return "redirect:/events/" + id;
         }
-        // --- КОНЕЦ ИМИТАЦИИ ---
 
-        // Преобразуем DTO в сущность Event
+        // Convert DTO to Event entity
         Event event = eventMapper.toEvent(eventDto);
-        // Сохраняем ID и организатора из существующего события
+        // Preserve ID and organizer from existing event
         event.setId(id);
         event.setOrganizer(existingEvent.getOrganizer());
 
-        // --- ДОБАВЛЕНО: Сохраняем currentParticipants ---
-        event.setCurrentParticipants(existingEvent.getCurrentParticipants());
-        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
-
-        // --- ИЗМЕНЕНО: Устанавливаем parsed startTime и endTime ---
-        event.setStartTime(eventDto.getParsedStartTime()); // <-- Устанавливаем LocalDateTime из DTO
-        event.setEndTime(eventDto.getParsedEndTime());     // <-- Устанавливаем LocalDateTime из DTO
-        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
-        // Не сохраняем status, если не предполагается его изменение через редактирование
-
         try {
-            Event updatedEvent = eventService.save(event, fakeCurrentUser);
+            Event updatedEvent = eventService.save(event, currentUser);
             return "redirect:/events/" + updatedEvent.getId();
         } catch (Exception e) {
             model.addAttribute("error", "Update failed: " + e.getMessage());
-            // В случае ошибки, снова передаем DTO в модель
+            // On error, pass DTO back to model
             model.addAttribute("event", eventDto);
             model.addAttribute("locations", locationService.findAll());
             return "events/edit";
@@ -166,19 +154,10 @@ public class EventController {
 
     @PostMapping("/{id}/delete")
     public String deleteEvent(@PathVariable Long id) {
-        Event event = eventService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
 
-        // --- ИМИТАЦИЯ: Проверка прав ---
-        User fakeCurrentUser = userService.findByUsername("admin") // Попробуем найти админа
-                .orElseThrow(() -> new RuntimeException("Fake user 'admin' not found for demo purposes."));
-
-        if (!event.getOrganizer().getId().equals(fakeCurrentUser.getId())) {
-            return "redirect:/events/" + id; // Не организатор - не удаляет
-        }
-        // --- КОНЕЦ ИМИТАЦИИ ---
-
-        eventService.deleteById(id, fakeCurrentUser);
+        eventService.deleteById(id, currentUser);
         return "redirect:/events";
     }
 }

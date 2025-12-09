@@ -1,11 +1,12 @@
-
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; 
+import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime; // Используем LocalDateTime
 
 @Entity
 @Table(name = "cowalking_locations")
@@ -33,13 +34,13 @@ public class Location {
     @Column(length = 1000)
     private String description;
 
-    
-    @Convert(converter = LocalDateTimeConverter.class)
+    // --- ИСПОЛЬЗУЕМ LocalDateTime с конвертером ---
+    @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер
     @Column(name = "created_at")
-    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Convert(converter = LocalDateTimeConverter.class)
+    @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер
     @Column(name = "updated_at")
-    private java.time.LocalDateTime updatedAt = java.time.LocalDateTime.now();
-    
+    private LocalDateTime updatedAt = LocalDateTime.now();
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 }

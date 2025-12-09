@@ -1,4 +1,3 @@
-
 package org.itmo.model;
 
 import org.itmo.model.enums.UserRole;
@@ -19,7 +18,7 @@ import java.util.Collections;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements UserDetails { 
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

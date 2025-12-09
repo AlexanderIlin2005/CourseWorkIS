@@ -1,4 +1,3 @@
-
 package org.itmo.model.converters;
 
 import jakarta.persistence.AttributeConverter;
@@ -7,7 +6,7 @@ import jakarta.persistence.Converter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-@Converter
+@Converter(autoApply = true) // autoApply применяет конвертер ко всем LocalDateTime полям автоматически
 public class LocalDateTimeConverter implements AttributeConverter<LocalDateTime, Timestamp> {
 
     @Override

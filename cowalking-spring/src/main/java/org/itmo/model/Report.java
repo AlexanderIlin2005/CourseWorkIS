@@ -1,13 +1,12 @@
-
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; 
+import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; // Используем LocalDateTime
 
 @Entity
 @Table(name = "cowalking_reports")
@@ -35,15 +34,15 @@ public class Report {
     @Column(nullable = false, length = 1000)
     private String reason;
 
-    
-    @Convert(converter = LocalDateTimeConverter.class)
+    // --- ИСПОЛЬЗУЕМ LocalDateTime с конвертером ---
+    @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Convert(converter = LocalDateTimeConverter.class)
+    @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
-    
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
     @Column(name = "is_resolved", nullable = false)
     private Boolean isResolved = false;

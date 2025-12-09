@@ -1,8 +1,14 @@
-// src/main/java/org/itmo/config/SecurityInitializer.java
 package org.itmo.config;
 
-// УБРАЛИ наследование от AbstractSecurityWebApplicationInitializer
-public class SecurityInitializer {
-    // Пустой класс или маркер, если нужен для других целей
-    // Он НЕ вызывает регистрацию фильтра вручную
+import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
+
+// Наследуемся от AbstractSecurityWebApplicationInitializer
+public class SecurityInitializer extends AbstractSecurityWebApplicationInitializer {
+    // Конструктор по умолчанию обычно достаточен
+    // Он автоматически зарегистрирует DelegatingFilterProxy для 'springSecurityFilterChain'
+    public SecurityInitializer() {
+        // super(); // Вызов конструктора родителя, который и делает всю работу
+        // super(SecurityConfig.class); // Можно указать SecurityConfig.class, если фильтр должен быть инициализирован до корневого контекста,
+        // но обычно этого не требуется, если SecurityConfig в корневом контексте.
+    }
 }

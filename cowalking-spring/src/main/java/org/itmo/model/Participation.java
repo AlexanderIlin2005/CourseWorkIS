@@ -1,13 +1,13 @@
-
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; 
+import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
+import org.itmo.model.enums.ParticipationStatus; // Импортируем внешний enum
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; // Используем LocalDateTime
 
 @Entity
 @Table(name = "cowalking_participations")
@@ -28,15 +28,13 @@ public class Participation {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @Convert(converter = LocalDateTimeConverter.class)
+    // --- ИСПОЛЬЗУЕМ LocalDateTime с конвертером ---
+    @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер
     @Column(name = "joined_at")
     private LocalDateTime joinedAt = LocalDateTime.now();
+    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
-    @Enumerated(EnumType.STRING) 
-    private ParticipationStatus status = ParticipationStatus.PENDING; 
-
-    
-    public enum ParticipationStatus {
-        PENDING, CONFIRMED, CANCELLED
-    }
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING) // <-- Используем внешний enum
+    private ParticipationStatus status = ParticipationStatus.PENDING; // <-- Используем внешний enum
 }

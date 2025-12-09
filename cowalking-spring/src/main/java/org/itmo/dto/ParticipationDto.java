@@ -1,7 +1,8 @@
 package org.itmo.dto;
 
-import lombok.Data;
 import org.itmo.model.Participation;
+import org.itmo.model.enums.ParticipationStatus;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ public class ParticipationDto {
     private Long userId;
     private Long eventId;
     private LocalDateTime joinedAt;
-    private Participation.ParticipationStatus status;
+    private ParticipationStatus status;
 
     public ParticipationDto() {}
 

@@ -1,8 +1,14 @@
 package org.itmo.controller;
 
+import org.itmo.dto.ReportDto;
+import org.itmo.model.Event;
 import org.itmo.model.Report;
 import org.itmo.model.User;
+import org.itmo.model.enums.UserRole;
+import org.itmo.service.EventService;
 import org.itmo.service.ReportService;
+import org.itmo.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,31 +16,83 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Controller
 @RequestMapping("/reports")
+@RequiredArgsConstructor
 public class ReportController {
 
     @Autowired
     private ReportService reportService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private EventService eventService;
+
     @GetMapping("/create")
     public String createReportForm(Model model) {
-        model.addAttribute("report", new Report());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
+             return "redirect:/login";
+        }
+
+        User currentUser = (User) auth.getPrincipal();
+        // Check if user is admin to allow creating reports against other users/events
+        boolean isAdmin = currentUser.getRole().equals(UserRole.ADMIN);
+
+        model.addAttribute("report", new ReportDto());
+        // Only pass users and events if user is admin
+        if (isAdmin) {
+            model.addAttribute("users", userService.findAll()); // Now available
+            model.addAttribute("events", eventService.findAll());
+        }
         return "reports/create";
     }
 
     @PostMapping("/create")
-    public String createReport(@ModelAttribute Report report, Model model) {
+    public String createReport(@ModelAttribute ReportDto reportDto, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
 
         try {
-            reportService.createReport(report, currentUser);
+            Report report = new Report();
+            report.setReason(reportDto.getReason());
+            report.setReporter(currentUser);
+
+            // Set reported user if provided and user is admin
+            if (reportDto.getReportedUserId() != null) {
+                if (!currentUser.getRole().equals(UserRole.ADMIN)) {
+                    model.addAttribute("error", "Only admins can report specific users.");
+                    model.addAttribute("report", reportDto);
+                    return "reports/create";
+                }
+                User reportedUser = userService.findById(reportDto.getReportedUserId())
+                    .orElseThrow(() -> new RuntimeException("Reported user not found"));
+                report.setReportedUser(reportedUser);
+            }
+
+            // Set event if provided
+            if (reportDto.getEventId() != null) {
+                Event event = eventService.findById(reportDto.getEventId())
+                    .orElseThrow(() -> new RuntimeException("Event not found"));
+                report.setEvent(event);
+            }
+
+            Report savedReport = reportService.createReport(report, currentUser);
             model.addAttribute("message", "Report submitted successfully!");
             return "redirect:/reports/create";
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("report", report);
+            model.addAttribute("error", "Report creation failed: " + e.getMessage());
+            model.addAttribute("report", reportDto);
+            // Reload users and events if admin
+            if (currentUser.getRole().equals(UserRole.ADMIN)) {
+                model.addAttribute("users", userService.findAll());
+                model.addAttribute("events", eventService.findAll());
+            }
             return "reports/create";
         }
     }
@@ -44,7 +102,7 @@ public class ReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
 
-        if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+        if (!currentUser.getRole().equals(UserRole.ADMIN)) {
             model.addAttribute("error", "Access denied");
             return "redirect:/";
         }
@@ -58,9 +116,9 @@ public class ReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) auth.getPrincipal();
 
-        if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+        if (!currentUser.getRole().equals(UserRole.ADMIN)) {
             model.addAttribute("error", "Access denied");
-            return "redirect:/";
+            return "redirect:/reports";
         }
 
         try {
