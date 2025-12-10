@@ -1,3 +1,4 @@
+// src/main/java/org/itmo/service/EventService.java
 package org.itmo.service;
 
 import org.itmo.model.Event;
@@ -31,29 +32,22 @@ public class EventService {
         return eventRepository.findByOrganizerId(organizerId);
     }
 
-    public List<Event> findByStatus(EventStatus status) {
-        return eventRepository.findByStatus(status); // Теперь использует внешний enum
+    public List<Event> findByStatus(EventStatus status) { // <-- Используйте импортированный enum
+        return eventRepository.findByStatus(status);
     }
 
     @Transactional
     public Event save(Event event, User currentUser) {
-        // Проверка прав: только организатор или админ может сохранять
-        if (event.getId() != null && !event.getOrganizer().getId().equals(currentUser.getId()) &&
-            !currentUser.getRole().equals(UserRole.ADMIN)) {
-            throw new SecurityException("You can only edit events you organized");
-        }
-
         // Проверка логики: startTime < endTime
         if (event.getStartTime() != null && event.getEndTime() != null && event.getStartTime().isAfter(event.getEndTime())) {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
-        // Если создаем новый, устанавливаем организатора
+        // Если создаем новый, устанавливаем организатора и статус
         if (event.getId() == null) {
             event.setOrganizer(currentUser);
-            event.setStatus(EventStatus.ACTIVE); // Устанавливаем статус при создании
+            event.setStatus(EventStatus.ACTIVE); // Используем внешний enum
         }
-
         // Обновляем время обновления
         event.setUpdatedAt(LocalDateTime.now());
 
@@ -62,13 +56,12 @@ public class EventService {
 
     @Transactional
     public void deleteById(Long id, User currentUser) {
-        Event event = eventRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Event not found"));
-
-        if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
-            !currentUser.getRole().equals(UserRole.ADMIN)) {
-            throw new SecurityException("You can only delete events you organized");
-        }
+        // Проверка прав: только организатор или админ может удалить
+        // Эта проверка теперь должна быть в контроллере, до вызова service
+        // if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
+        //     !currentUser.getRole().equals(UserRole.ADMIN)) {
+        //     throw new SecurityException("You can only delete events you organized");
+        // }
 
         eventRepository.deleteById(id);
     }

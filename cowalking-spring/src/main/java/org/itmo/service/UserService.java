@@ -1,3 +1,4 @@
+// src/main/java/org/itmo/service/UserService.java
 package org.itmo.service;
 
 import org.itmo.model.User;
@@ -11,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.List; // Импортируем List
 import java.util.Optional;
 
 @Service
@@ -24,8 +25,8 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     public User save(User user) {
-        // Encode password if it's not already encoded (e.g., during registration)
-        if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) { // Assuming BCrypt starts with $2a$
+        // Хешируем пароль при сохранении
+        if (user.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return userRepository.save(user);
@@ -39,17 +40,15 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username);
     }
 
-    // --- ADDED: Method to find all users ---
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-    // --- END OF ADDITION ---
-
-    // --- ADDED: Method to find by email ---
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
-    // --- END OF ADDITION ---
+
+    // --- ДОБАВЛЕНО: Метод findAll для получения всех пользователей ---
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
     public String encodePassword(String rawPassword) {
         return passwordEncoder.encode(rawPassword);

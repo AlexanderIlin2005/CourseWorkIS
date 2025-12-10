@@ -1,6 +1,7 @@
+// src/main/java/org/itmo/config/SecurityConfig.java
 package org.itmo.config;
 
-import org.itmo.service.UserService; // Ensure imported
+import org.itmo.service.UserService; // Убедитесь, что импортирован
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,34 +18,38 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService; // Service for UserDetailsService
+    private UserService userService; // Сервис для UserDetailsService
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // Service for PasswordEncoder
+    private PasswordEncoder passwordEncoder; // Сервис для PasswordEncoder
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return userService; // Return your UserService (UserDetailsService)
+        return userService; // Возвращаем ваш UserService (UserDetailsService)
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Allow access
-                        .requestMatchers("/events", "/events/{id}").permitAll() // Allow viewing events
-                        .requestMatchers("/events/create", "/events/{id}/edit", "/events/{id}/delete").authenticated() // Require authentication for CRUD ops
-                        .requestMatchers("/participations/join/**", "/participations/leave/**").authenticated() // Require authentication for participation
-                        .requestMatchers("/reports/create").authenticated() // Require authentication for reporting
-                        .requestMatchers("/reports").hasRole("ADMIN") // Only admin can view reports
-                        .requestMatchers("/reports/{id}/resolve").hasRole("ADMIN") // Only admin can resolve
-                        .anyRequest().authenticated() // All other require authentication
+                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Разрешаем доступ
+                        .requestMatchers("/events", "/events/{id}").permitAll() // Разрешаем просматривать события всем
+                        // --- ИСПРАВЛЕНО: разрешаем аутентифицированным пользователям создавать события ---
+                        .requestMatchers("/events/create").authenticated() // <-- Только аутентифицированные могут создавать
+                        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+                        .requestMatchers("/participations/join/**", "/participations/leave/**").authenticated() // Требует аутентификации
+                        .requestMatchers("/reports/create").authenticated() // Требует аутентификации
+                        .requestMatchers("/reports", "/reports/{id}/resolve").hasRole("ADMIN") // Только админ
+                        // --- ИСПРАВЛЕНО: разрешаем аутентифицированным пользователям редактировать/удалять (проверка прав внутри контроллера) ---
+                        .requestMatchers("/events/{id}/edit", "/events/{id}/delete").authenticated() // <-- Только аутентифицированные могут редактировать/удалять
+                        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+                        .anyRequest().authenticated() // Все остальные требуют аутентификации
                 )
                 .formLogin((form) -> form
-                        .loginPage("/login") // Specify login page
-                        .permitAll() // Allow everyone access to login page
+                        .loginPage("/login") // Указываем страницу логина
+                        .permitAll() // Разрешаем всем доступ к странице логина
                 )
-                .logout(LogoutConfigurer::permitAll); // Allow everyone to logout
+                .logout(LogoutConfigurer::permitAll); // Разрешить всем выход
 
         return http.build();
     }
