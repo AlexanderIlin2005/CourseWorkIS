@@ -14,6 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory; // <-- Добавьте импорт
+
 @Controller
 @RequiredArgsConstructor
 public class UserController {
@@ -21,16 +24,24 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper; // <-- Внедряем UserMapper
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class); // <-- Добавьте логгер
+
     @GetMapping("/users/profile")
     public String profile(Model model) {
+        logger.info("Handling GET request for /users/profile"); // <-- Логируем начало метода
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        logger.debug("Current authentication: {}", auth); // <-- Логируем объект аутентификации
+
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+            logger.warn("User not authenticated or principal is not of type User, redirecting to /login");
             return "redirect:/login";
         }
         User currentUser = (User) auth.getPrincipal();
+        logger.info("Current user: ID={}, Username={}", currentUser.getId(), currentUser.getUsername()); // <-- Логируем текущего пользователя
 
         // Convert User entity to UserDto for the view
-        UserDto userDto = userMapper.toUserDto(currentUser); // <-- Используем UserMapper
+        UserDto userDto = userMapper.toUserDto(currentUser);
+        logger.debug("Converted User to UserDto: {}", userDto); // <-- Логируем DTO
         model.addAttribute("user", userDto);
 
         return "profile";
@@ -38,38 +49,51 @@ public class UserController {
 
     @PostMapping("/users/update")
     public String updateProfile(@ModelAttribute UserDto userDto, Model model) {
+        logger.info("Handling POST request for /users/update with DTO: {}", userDto); // <-- Логируем DTO из запроса
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        logger.debug("Current authentication: {}", auth); // <-- Логируем объект аутентификации
+
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+            logger.warn("User not authenticated or principal is not of type User, redirecting to /login");
             return "redirect:/login";
         }
         User currentUser = (User) auth.getPrincipal();
+        logger.info("Current user attempting update: ID={}, Username={}", currentUser.getId(), currentUser.getUsername()); // <-- Логируем текущего пользователя
+        logger.debug("UserDto received for update: {}", userDto); // <-- Логируем полученный DTO
 
         // Check if updating own profile or admin updating
         if (!currentUser.getId().equals(userDto.getId()) && !currentUser.getRole().equals(UserRole.ADMIN)) {
+            logger.warn("User {} (ID={}) attempted to update profile for user ID {}, access denied.", currentUser.getUsername(), currentUser.getId(), userDto.getId());
             return "redirect:/users/profile";
         }
 
         // Find the user to update (should be the same as current user or admin)
         User userToUpdate = userService.findById(userDto.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("User to update (ID={}) not found in database.", userDto.getId());
+                    return new RuntimeException("User not found");
+                });
+        logger.info("Found user in DB to update: ID={}, Username={}", userToUpdate.getId(), userToUpdate.getUsername()); // <-- Логируем найденного в БД
 
         // Update allowed fields
         userToUpdate.setEmail(userDto.getEmail());
         userToUpdate.setPhone(userDto.getPhone()); // <-- Обновляем телефон
         userToUpdate.setBio(userDto.getBio());     // <-- Обновляем bio
+        logger.info("Updated fields for user {}: Email={}, Phone={}, Bio={}", userToUpdate.getId(), userToUpdate.getEmail(), userToUpdate.getPhone(), userToUpdate.getBio()); // <-- Логируем обновление полей
 
         try {
-            User updatedUser = userService.save(userToUpdate); // <-- Сохраняем обновленную сущность
+            User updatedUser = userService.save(userToUpdate); // <-- Логируем вызов save
+            logger.info("User profile updated successfully: ID={}", updatedUser.getId());
             model.addAttribute("message", "Profile updated successfully!");
             // Refresh the DTO to show updated values
-            UserDto updatedUserDto = userMapper.toUserDto(updatedUser); // <-- Используем UserMapper
+            UserDto updatedUserDto = userMapper.toUserDto(updatedUser);
             model.addAttribute("user", updatedUserDto);
-            return "redirect:/users/profile"; // <-- REDIRECT после POST!
+            return "redirect:/users/profile";
         } catch (Exception e) {
+            logger.error("Error updating user profile (ID={}): {}", userDto.getId(), e.getMessage(), e); // <-- Логируем ошибку
             model.addAttribute("error", "Update failed: " + e.getMessage());
-            // Pass DTO back to keep values
-            model.addAttribute("user", userDto);
-            return "profile"; // <-- Возвращаемся на ту же страницу с ошибкой
+            model.addAttribute("user", userDto); // Pass DTO back to keep values
+            return "profile"; // Возвращаемся на ту же страницу с ошибкой
         }
     }
 

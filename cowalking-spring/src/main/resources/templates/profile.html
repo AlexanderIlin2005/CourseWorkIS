@@ -44,6 +44,11 @@
         <div th:if="${error}" class="error" th:text="${error}">Error message</div>
 
         <form th:action="@{/users/update}" method="post" th:object="${user}">
+
+            <!-- Скрытое поле для ID -->
+            <input type="hidden" th:field="*{id}" />
+
+
             <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" id="username" th:field="*{username}" readonly> <!-- readonly для username -->

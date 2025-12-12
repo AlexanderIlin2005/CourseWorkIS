@@ -18,6 +18,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory; // <-- Добавьте импорт
+
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
@@ -26,43 +29,50 @@ public class UserService implements UserDetailsService {
 
     private final EventRepository eventRepository; // <-- Внедряем EventRepository
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class); // <-- Добавьте логгер
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     // --- ИСПРАВЛЕНО: Метод save теперь транзакционен и корректно обрабатывает пароль ---
     @Transactional
     public User save(User user) {
-        // Хешируем пароль ТОЛЬКО если он был *изменен* (не пустой и не начинается с $2a$)
-        // Предполагаем, что все BCrypt хеши начинаются с $2a$, $2b$, $2y$
-        if (user.getPassword() != null && !user.getPassword().isEmpty() && !user.getPassword().startsWith("$2a$") && !user.getPassword().startsWith("$2b$") && !user.getPassword().startsWith("$2y$")) {
+        logger.info("Saving user: ID={}, Username={}", user.getId(), user.getUsername()); // <-- Логируем сохранение
+        if (user.getPassword() != null && !user.getPassword().isEmpty() && !user.getPassword().startsWith("$2a$")) {
+            logger.debug("Hashing new password for user: {}", user.getUsername()); // <-- Логируем хеширование
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+        } else {
+            logger.debug("Password for user {} is already hashed or empty, skipping hashing.", user.getUsername()); // <-- Логируем пропуск хеширования
         }
-        // Роли и активность, скорее всего, не должны изменяться через updateProfile
-        // createdAt не изменяется при update
-        // updatedAt обновляется автоматически при save, если у вас есть аннотация @UpdateTimestamp или вы делаете это вручную
-        // Вручную обновим updatedAt
         user.setUpdatedAt(LocalDateTime.now());
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        logger.info("User saved successfully with ID: {}", saved.getId());
+        return saved;
     }
 
     public Optional<User> findById(Long id) {
+        logger.debug("Looking up user by ID: {}", id); // <-- Логируем поиск
         return userRepository.findById(id);
     }
 
     public Optional<User> findByUsername(String username) {
+        logger.debug("Looking up user by username: {}", username); // <-- Логируем поиск
         return userRepository.findByUsername(username);
     }
 
     public Optional<User> findByEmail(String email) {
+        logger.debug("Looking up user by email: {}", email); // <-- Логируем поиск
         return userRepository.findByEmail(email);
     }
 
     public Optional<User> findByPhone(String phone) {
+        logger.debug("Looking up user by phone: {}", phone); // <-- Логируем поиск
         return userRepository.findByPhone(phone);
     }
 
     public String encodePassword(String rawPassword) {
+        logger.debug("Encoding password: {}", rawPassword); // <-- Логируем вызов encodePassword
         return passwordEncoder.encode(rawPassword);
     }
 
@@ -74,8 +84,13 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Loading user details by username: {}", username); // <-- Логируем загрузку
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> {
+                    logger.warn("User not found during authentication: {}", username); // <-- Логируем отсутствие
+                    return new UsernameNotFoundException("User not found: " + username);
+                });
+        logger.info("Loaded user details: ID={}, Username={}, Role={}", user.getId(), user.getUsername(), user.getRole()); // <-- Логируем найденного
         return user;
     }
 
