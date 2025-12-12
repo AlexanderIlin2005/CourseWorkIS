@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; // <-- Добавьте импорт
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // <-- Добавьте импорт
+import org.springframework.security.core.userdetails.UserDetails;
+
 @Controller
 @RequiredArgsConstructor
 public class UserController {
@@ -49,17 +52,16 @@ public class UserController {
 
     @PostMapping("/users/update")
     public String updateProfile(@ModelAttribute UserDto userDto, Model model) {
-        logger.info("Handling POST request for /users/update with DTO: {}", userDto); // <-- Логируем DTO из запроса
+        logger.info("Handling POST request for /users/update with DTO: {}", userDto);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        logger.debug("Current authentication: {}", auth); // <-- Логируем объект аутентификации
+        logger.debug("Current authentication: {}", auth);
 
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
             logger.warn("User not authenticated or principal is not of type User, redirecting to /login");
             return "redirect:/login";
         }
         User currentUser = (User) auth.getPrincipal();
-        logger.info("Current user attempting update: ID={}, Username={}", currentUser.getId(), currentUser.getUsername()); // <-- Логируем текущего пользователя
-        logger.debug("UserDto received for update: {}", userDto); // <-- Логируем полученный DTO
+        logger.info("Current user attempting update: ID={}, Username={}", currentUser.getId(), currentUser.getUsername());
 
         // Check if updating own profile or admin updating
         if (!currentUser.getId().equals(userDto.getId()) && !currentUser.getRole().equals(UserRole.ADMIN)) {
@@ -73,29 +75,45 @@ public class UserController {
                     logger.error("User to update (ID={}) not found in database.", userDto.getId());
                     return new RuntimeException("User not found");
                 });
-        logger.info("Found user in DB to update: ID={}, Username={}", userToUpdate.getId(), userToUpdate.getUsername()); // <-- Логируем найденного в БД
+        logger.info("Found user in DB to update: ID={}, Username={}", userToUpdate.getId(), userToUpdate.getUsername());
 
         // Update allowed fields
         userToUpdate.setEmail(userDto.getEmail());
-        userToUpdate.setPhone(userDto.getPhone()); // <-- Обновляем телефон
-        userToUpdate.setBio(userDto.getBio());     // <-- Обновляем bio
-        logger.info("Updated fields for user {}: Email={}, Phone={}, Bio={}", userToUpdate.getId(), userToUpdate.getEmail(), userToUpdate.getPhone(), userToUpdate.getBio()); // <-- Логируем обновление полей
+        userToUpdate.setPhone(userDto.getPhone());
+        userToUpdate.setBio(userDto.getBio());
+        logger.info("Updated fields for user {}: Email={}, Phone={}, Bio={}", userToUpdate.getId(), userToUpdate.getEmail(), userToUpdate.getPhone(), userToUpdate.getBio());
 
         try {
-            User updatedUser = userService.save(userToUpdate); // <-- Логируем вызов save
+            User updatedUser = userService.save(userToUpdate);
             logger.info("User profile updated successfully: ID={}", updatedUser.getId());
+
+            // --- ИСПРАВЛЕНО: Принудительно обновляем Authentication в SecurityContextHolder ---
+            // Загружаем обновленного пользователя из UserService (который реализует UserDetailsService)
+            UserDetails freshUserDetails = userService.loadUserByUsername(updatedUser.getUsername());
+            // Создаем новый Authentication объект
+            UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+                    freshUserDetails, // Новый Principal
+                    auth.getCredentials(), // Оставляем старые Credentials (пароль обычно null после аутентификации)
+                    freshUserDetails.getAuthorities() // Обновляем Authorities (на всякий случай)
+            );
+            newAuth.setDetails(auth.getDetails()); // Оставляем старые Details
+            // Устанавливаем новый Authentication
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+            // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
             model.addAttribute("message", "Profile updated successfully!");
             // Refresh the DTO to show updated values
             UserDto updatedUserDto = userMapper.toUserDto(updatedUser);
             model.addAttribute("user", updatedUserDto);
             return "redirect:/users/profile";
         } catch (Exception e) {
-            logger.error("Error updating user profile (ID={}): {}", userDto.getId(), e.getMessage(), e); // <-- Логируем ошибку
+            logger.error("Error updating user profile (ID={}): {}", userDto.getId(), e.getMessage(), e);
             model.addAttribute("error", "Update failed: " + e.getMessage());
             model.addAttribute("user", userDto); // Pass DTO back to keep values
             return "profile"; // Возвращаемся на ту же страницу с ошибкой
         }
     }
+
 
     @GetMapping("/registration")
     public String registrationForm(Model model) {
