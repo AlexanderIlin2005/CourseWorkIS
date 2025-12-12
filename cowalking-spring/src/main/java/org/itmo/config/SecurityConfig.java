@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/events/{id}/edit", "/events/{id}/delete").authenticated() // <-- Только аутентифицированные могут редактировать/удалять
                         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
                         // --- ДОБАВЛЕНО: разрешаем аутентифицированным пользователям обновлять профиль ---
-                        .requestMatchers("/users/update").permitAll() // <-- Только аутентифицированные могут обновлять профиль
+                        .requestMatchers("/users/update").authenticated() // <-- Только аутентифицированные могут обновлять профиль
                         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
                         .anyRequest().authenticated() // Все остальные требуют аутентификации
                 )

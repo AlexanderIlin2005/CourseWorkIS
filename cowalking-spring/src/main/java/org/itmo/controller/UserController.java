@@ -5,6 +5,8 @@ import org.itmo.dto.UserDto;
 import org.itmo.model.User;
 import org.itmo.model.enums.UserRole;
 import org.itmo.service.UserService;
+import org.itmo.service.EventService; // <-- Импортируем EventService
+import org.itmo.mapper.EventMapper; // <-- Импортируем EventMapper
 import org.itmo.mapper.UserMapper; // <-- Импортируем UserMapper
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +17,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory; // <-- Добавьте импорт
+import org.slf4j.LoggerFactory; // <-- Импортируем Logger
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // <-- Добавьте импорт
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // <-- Импортируем Authentication Token
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.List; // <-- Импортируем List
+import java.util.stream.Collectors; // <-- Импортируем Collectors
 
 @Controller
 @RequiredArgsConstructor
@@ -27,25 +32,50 @@ public class UserController {
     private final UserService userService;
     private final UserMapper userMapper; // <-- Внедряем UserMapper
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class); // <-- Добавьте логгер
+    // --- ВНЕДРИМ EventService и EventMapper ---
+    @Autowired
+    private EventService eventService; // <-- Внедряем EventService
+
+    @Autowired
+    private EventMapper eventMapper; // <-- Внедряем EventMapper
+    // --- КОНЕЦ ВНЕДРЕНИЯ ---
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class); // <-- Логгер
 
     @GetMapping("/users/profile")
     public String profile(Model model) {
-        logger.info("Handling GET request for /users/profile"); // <-- Логируем начало метода
+        logger.info("Handling GET request for /users/profile");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        logger.debug("Current authentication: {}", auth); // <-- Логируем объект аутентификации
+        logger.debug("Current authentication: {}", auth);
 
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
             logger.warn("User not authenticated or principal is not of type User, redirecting to /login");
             return "redirect:/login";
         }
         User currentUser = (User) auth.getPrincipal();
-        logger.info("Current user: ID={}, Username={}", currentUser.getId(), currentUser.getUsername()); // <-- Логируем текущего пользователя
+        logger.info("Current user: ID={}, Username={}", currentUser.getId(), currentUser.getUsername());
 
         // Convert User entity to UserDto for the view
         UserDto userDto = userMapper.toUserDto(currentUser);
-        logger.debug("Converted User to UserDto: {}", userDto); // <-- Логируем DTO
+        logger.debug("Converted User to UserDto: {}", userDto);
         model.addAttribute("user", userDto);
+
+        // --- ПОЛУЧАЕМ И ПЕРЕДАЕМ ОРГАНИЗОВАННЫЕ СОБЫТИЯ ---
+        try {
+            List<org.itmo.model.Event> organizedEvents = userService.findOrganizedEvents(currentUser.getId()); // Вызываем метод из UserService
+            logger.debug("Found {} events organized by user ID={}", organizedEvents.size(), currentUser.getId());
+
+            // Преобразуем сущности Event в DTO для представления
+            List<org.itmo.dto.EventDto> organizedEventDtos = organizedEvents.stream()
+                    .map(eventMapper::toEventDto) // Используем EventMapper
+                    .collect(Collectors.toList());
+
+            model.addAttribute("organizedEvents", organizedEventDtos); // Передаем DTO в модель
+        } catch (Exception e) {
+            logger.error("Error fetching events organized by user ID={}", currentUser.getId(), e);
+            model.addAttribute("organizedEvents", List.of()); // Передаем пустой список в случае ошибки
+        }
+        // --- КОНЕЦ ПОЛУЧЕНИЯ ---
 
         return "profile";
     }
@@ -88,16 +118,13 @@ public class UserController {
             logger.info("User profile updated successfully: ID={}", updatedUser.getId());
 
             // --- ИСПРАВЛЕНО: Принудительно обновляем Authentication в SecurityContextHolder ---
-            // Загружаем обновленного пользователя из UserService (который реализует UserDetailsService)
             UserDetails freshUserDetails = userService.loadUserByUsername(updatedUser.getUsername());
-            // Создаем новый Authentication объект
             UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
                     freshUserDetails, // Новый Principal
-                    auth.getCredentials(), // Оставляем старые Credentials (пароль обычно null после аутентификации)
-                    freshUserDetails.getAuthorities() // Обновляем Authorities (на всякий случай)
+                    auth.getCredentials(),
+                    freshUserDetails.getAuthorities()
             );
-            newAuth.setDetails(auth.getDetails()); // Оставляем старые Details
-            // Устанавливаем новый Authentication
+            newAuth.setDetails(auth.getDetails());
             SecurityContextHolder.getContext().setAuthentication(newAuth);
             // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
@@ -105,22 +132,57 @@ public class UserController {
             // Refresh the DTO to show updated values
             UserDto updatedUserDto = userMapper.toUserDto(updatedUser);
             model.addAttribute("user", updatedUserDto);
+
+            // --- ПОВТОРНО ПОЛУЧАЕМ И ПЕРЕДАЕМ ОРГАНИЗОВАННЫЕ СОБЫТИЯ ---
+            try {
+                List<org.itmo.model.Event> organizedEvents = userService.findOrganizedEvents(updatedUser.getId());
+                logger.debug("Found {} events organized by user ID={} after update", organizedEvents.size(), updatedUser.getId());
+
+                List<org.itmo.dto.EventDto> organizedEventDtos = organizedEvents.stream()
+                        .map(eventMapper::toEventDto)
+                        .collect(Collectors.toList());
+
+                model.addAttribute("organizedEvents", organizedEventDtos);
+            } catch (Exception e) {
+                logger.error("Error fetching events organized by user ID={} after update", updatedUser.getId(), e);
+                model.addAttribute("organizedEvents", List.of()); // Передаем пустой список в случае ошибки
+            }
+            // --- КОНЕЦ ПОВТОРНОГО ПОЛУЧЕНИЯ ---
             return "redirect:/users/profile";
         } catch (Exception e) {
             logger.error("Error updating user profile (ID={}): {}", userDto.getId(), e.getMessage(), e);
             model.addAttribute("error", "Update failed: " + e.getMessage());
             model.addAttribute("user", userDto); // Pass DTO back to keep values
+
+            // --- ПОЛУЧАЕМ И ПЕРЕДАЕМ ОРГАНИЗОВАННЫЕ СОБЫТИЯ ---
+            try {
+                User userForEvents = userService.findById(userDto.getId()).orElse(null);
+                if (userForEvents != null) {
+                    List<org.itmo.model.Event> organizedEvents = userService.findOrganizedEvents(userForEvents.getId());
+                    logger.debug("Found {} events organized by user ID={} for error page", organizedEvents.size(), userForEvents.getId());
+
+                    List<org.itmo.dto.EventDto> organizedEventDtos = organizedEvents.stream()
+                            .map(eventMapper::toEventDto)
+                            .collect(Collectors.toList());
+
+                    model.addAttribute("organizedEvents", organizedEventDtos);
+                } else {
+                    model.addAttribute("organizedEvents", List.of());
+                }
+            } catch (Exception e2) {
+                logger.error("Error fetching events organized by user ID={} for error page", userDto.getId(), e2);
+                model.addAttribute("organizedEvents", List.of());
+            }
+            // --- КОНЕЦ ПОЛУЧЕНИЯ ---
             return "profile"; // Возвращаемся на ту же страницу с ошибкой
         }
     }
-
 
     @GetMapping("/registration")
     public String registrationForm(Model model) {
         model.addAttribute("userDto", new UserDto());
         return "registration";
     }
-
 
     @PostMapping("/registration")
     public String registerUser(@ModelAttribute UserDto userDto, Model model) {

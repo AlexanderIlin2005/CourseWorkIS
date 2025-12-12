@@ -49,10 +49,10 @@ public class EventController {
             return "redirect:/login";
         }
         User currentUser = (User) auth.getPrincipal();
-        if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ORGANIZER) &&
-                !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
-            return "redirect:/events";
-        }
+        //if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ORGANIZER) &&
+        //        !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+        //    return "redirect:/events";
+        //}
 
         model.addAttribute("event", new EventDto()); // Передаем DTO в модель
         model.addAttribute("locations", locationService.findAll());
