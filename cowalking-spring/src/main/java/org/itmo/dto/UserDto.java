@@ -28,8 +28,7 @@ public class UserDto {
         this.email = user.getEmail();
         this.phone = user.getPhone(); // Added phone mapping
         this.bio = user.getBio();     // Added bio mapping
-        // УБРАНО: private String password; // <-- Не нужно для обновления профиля
-        // Don't set password for DTO
+
         this.role = user.getRole();
         this.active = user.isEnabled(); // Use isEnabled() instead of getActive()
         this.createdAt = user.getCreatedAt();

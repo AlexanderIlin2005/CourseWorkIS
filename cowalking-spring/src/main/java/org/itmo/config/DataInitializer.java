@@ -93,4 +93,5 @@ public class DataInitializer {
             // --- КОНЕЦ ОБНОВЛЕНИЯ ---
         }
     }
+
 }

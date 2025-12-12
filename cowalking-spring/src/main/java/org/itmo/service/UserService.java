@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Импортируем Transactional
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,9 +29,12 @@ public class UserService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // --- ИСПРАВЛЕНО: Метод save теперь транзакционен и корректно обрабатывает пароль ---
+    @Transactional
     public User save(User user) {
-        // Хешируем пароль ТОЛЬКО если он был изменен (не пустой и не начинается с $2a$)
-        if (user.getPassword() != null && !user.getPassword().isEmpty() && !user.getPassword().startsWith("$2a$")) {
+        // Хешируем пароль ТОЛЬКО если он был *изменен* (не пустой и не начинается с $2a$)
+        // Предполагаем, что все BCrypt хеши начинаются с $2a$, $2b$, $2y$
+        if (user.getPassword() != null && !user.getPassword().isEmpty() && !user.getPassword().startsWith("$2a$") && !user.getPassword().startsWith("$2b$") && !user.getPassword().startsWith("$2y$")) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         // Роли и активность, скорее всего, не должны изменяться через updateProfile
