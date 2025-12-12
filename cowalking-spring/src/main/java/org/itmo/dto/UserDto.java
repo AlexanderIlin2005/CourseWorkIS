@@ -15,6 +15,12 @@ public class UserDto {
     private String phone; // Added phone field
     private String bio;   // Added bio field
     private String password; // Field for password during registration
+
+    // --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ ---
+    private String telegramId; // Added Telegram ID field
+    private String vkId;       // Added VK ID field
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
     private UserRole role;
     private Boolean active;
     private LocalDateTime createdAt;
@@ -28,6 +34,11 @@ public class UserDto {
         this.email = user.getEmail();
         this.phone = user.getPhone(); // Added phone mapping
         this.bio = user.getBio();     // Added bio mapping
+
+        // --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ ---
+        this.telegramId = user.getTelegramId();
+        this.vkId = user.getVkId();
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
         this.role = user.getRole();
         this.active = user.isEnabled(); // Use isEnabled() instead of getActive()

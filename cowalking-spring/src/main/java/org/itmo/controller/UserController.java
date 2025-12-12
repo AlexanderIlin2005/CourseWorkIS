@@ -111,6 +111,11 @@ public class UserController {
         userToUpdate.setEmail(userDto.getEmail());
         userToUpdate.setPhone(userDto.getPhone());
         userToUpdate.setBio(userDto.getBio());
+        // --- ДОБАВЛЕНО: ОБНОВЛЕНИЕ ID СОЦСЕТЕЙ ---
+        userToUpdate.setTelegramId(userDto.getTelegramId());
+        userToUpdate.setVkId(userDto.getVkId());
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
         logger.info("Updated fields for user {}: Email={}, Phone={}, Bio={}", userToUpdate.getId(), userToUpdate.getEmail(), userToUpdate.getPhone(), userToUpdate.getBio());
 
         try {
@@ -215,12 +220,32 @@ public class UserController {
                 return "registration";
             }
 
+            // --- ДОБАВЛЕНО: ПРОВЕРКА УНИКАЛЬНОСТИ ID СОЦСЕТЕЙ ---
+            // Check if Telegram ID exists (if provided)
+            if (userDto.getTelegramId() != null && !userDto.getTelegramId().isEmpty() && userService.findByTelegramId(userDto.getTelegramId()).isPresent()) {
+                model.addAttribute("error", "Telegram ID already exists.");
+                model.addAttribute("userDto", userDto);
+                return "registration";
+            }
+
+            // Check if VK ID exists (if provided)
+            if (userDto.getVkId() != null && !userDto.getVkId().isEmpty() && userService.findByVkId(userDto.getVkId()).isPresent()) {
+                model.addAttribute("error", "VK ID already exists.");
+                model.addAttribute("userDto", userDto);
+                return "registration";
+            }
+            // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
             // --- ИСПРАВЛЕНО: Не используем UserMapper для пароля ---
             User user = new User(); // Создаем сущность вручную
             user.setUsername(userDto.getUsername());
             user.setEmail(userDto.getEmail());
             user.setPhone(userDto.getPhone());
             user.setBio(userDto.getBio());
+            // --- ДОБАВЛЕНО: УСТАНОВКА ID СОЦСЕТЕЙ ---
+            user.setTelegramId(userDto.getTelegramId());
+            user.setVkId(userDto.getVkId());
+            // --- КОНЕЦ ДОБАВЛЕНИЯ ---
             // Хешируем пароль из DTO и устанавливаем в сущность
             user.setPassword(userService.encodePassword(userDto.getPassword()));
             // --- КОНЕЦ ИСПРАВЛЕНИЯ ---

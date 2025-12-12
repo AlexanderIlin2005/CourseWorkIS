@@ -71,6 +71,16 @@ public class UserService implements UserDetailsService {
         return userRepository.findByPhone(phone);
     }
 
+    // --- ДОБАВЛЕНО: МЕТОДЫ ПОИСКА ПО ID СОЦСЕТЕЙ ---
+    public Optional<User> findByTelegramId(String telegramId) {
+        return userRepository.findByTelegramId(telegramId);
+    }
+
+    public Optional<User> findByVkId(String vkId) {
+        return userRepository.findByVkId(vkId);
+    }
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
     public String encodePassword(String rawPassword) {
         logger.debug("Encoding password: {}", rawPassword); // <-- Логируем вызов encodePassword
         return passwordEncoder.encode(rawPassword);

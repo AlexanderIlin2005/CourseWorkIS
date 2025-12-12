@@ -71,6 +71,18 @@
             </div>
             <!-- --- КОНЕЦ ДОБАВЛЕНИЯ --- -->
 
+            <!-- --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ --- -->
+            <div class="form-group">
+                <label for="telegramId">Telegram ID:</label>
+                <input type="text" id="telegramId" th:field="*{telegramId}" placeholder="@example">
+            </div>
+
+            <div class="form-group">
+                <label for="vkId">VK ID:</label>
+                <input type="text" id="vkId" th:field="*{vkId}" placeholder="@example">
+            </div>
+            <!-- --- КОНЕЦ ДОБАВЛЕНИЯ --- -->
+
             <div class="form-group">
                 <label for="role">Role:</label>
                 <input type="text" id="role" th:value="*{role}" readonly> <!-- readonly для role -->

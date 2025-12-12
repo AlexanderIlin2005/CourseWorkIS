@@ -44,6 +44,10 @@
             <p><strong>Email:</strong> <span th:text="${user.email}">Email</span></p>
             <p><strong>Phone:</strong> <span th:text="${user.phone ?: 'Not provided'}">Phone</span></p>
             <p><strong>Bio:</strong> <span th:text="${user.bio ?: 'No bio'}">Bio</span></p>
+            <!-- --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ --- -->
+            <p><strong>Telegram:</strong> <span th:text="${user.telegramId ?: 'Not provided'}">Telegram</span></p>
+            <p><strong>VK:</strong> <span th:text="${user.vkId ?: 'Not provided'}">VK</span></p>
+            <!-- --- КОНЕЦ ДОБАВЛЕНИЯ --->
         </div>
         <a href="/events" class="btn-secondary">Back to Events</a>
     </div>

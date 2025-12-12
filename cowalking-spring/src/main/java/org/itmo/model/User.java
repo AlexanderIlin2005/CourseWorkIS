@@ -41,6 +41,14 @@ public class User implements UserDetails {
     @Column(length = 1000, nullable = true) // Bio field
     private String bio;
 
+    // --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ ---
+    @Column(unique = true, nullable = true) // Telegram ID (@username)
+    private String telegramId;
+
+    @Column(unique = true, nullable = true) // VK ID (@username)
+    private String vkId;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
 

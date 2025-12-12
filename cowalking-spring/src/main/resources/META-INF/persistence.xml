@@ -17,7 +17,7 @@
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/studs"/>
             <property name="jakarta.persistence.jdbc.user" value="s381032"/>
             <property name="eclipselink.logging.level" value="FINE"/>
-            <property name="eclipselink.ddl-generation" value="create-tables"/>
+            <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
         </properties>
     </persistence-unit>
 </persistence>
