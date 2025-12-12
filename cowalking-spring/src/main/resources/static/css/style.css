@@ -268,3 +268,41 @@ footer {
         font-size: 1rem;
     }
 }
+
+
+
+/* Filter form */
+.filter-form {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-form label {
+    font-weight: 500;
+}
+
+.filter-form select,
+.filter-form button,
+.filter-form a {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.filter-form button,
+.filter-form a {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.filter-form a {
+    text-decoration: none;
+}

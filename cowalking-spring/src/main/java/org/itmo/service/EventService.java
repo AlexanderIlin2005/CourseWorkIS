@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.RequestParam;
+
 @Service
 @RequiredArgsConstructor
 public class EventService {
@@ -64,5 +67,19 @@ public class EventService {
         // }
 
         eventRepository.deleteById(id);
+    }
+
+    public List<Event> findAllSorted(String sort, String direction) {
+        // Базовая проверка параметров
+        if (!"startTime".equals(sort) && !"endTime".equals(sort)) {
+            sort = "startTime"; // Значение по умолчанию
+        }
+        if (!"asc".equals(direction) && !"desc".equals(direction)) {
+            direction = "asc"; // Значение по умолчанию
+        }
+
+        // Используем Spring Data JPA для сортировки
+        Sort sortDirection = "asc".equals(direction) ? Sort.by(sort).ascending() : Sort.by(sort).descending();
+        return eventRepository.findAll(sortDirection);
     }
 }

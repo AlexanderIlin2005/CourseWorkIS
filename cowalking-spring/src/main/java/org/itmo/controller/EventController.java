@@ -30,16 +30,16 @@ public class EventController {
     private final UserService userService; // <-- Внедряем UserService для получения текущего пользователя
     private final EventMapper eventMapper; // <-- Внедряем EventMapper
 
-    @GetMapping
-    public String listEvents(Model model) {
-        List<Event> events = eventService.findAll();
-        // Преобразуем список Event в список EventDto
-        List<EventDto> eventDtos = events.stream()
-                .map(eventMapper::toEventDto) // Используем маппер
-                .collect(Collectors.toList());
-        model.addAttribute("events", eventDtos); // Передаем DTO в модель
-        return "events/list";
-    }
+//    @GetMapping
+//    public String listEvents(Model model) {
+//        List<Event> events = eventService.findAll();
+//        // Преобразуем список Event в список EventDto
+//        List<EventDto> eventDtos = events.stream()
+//                .map(eventMapper::toEventDto) // Используем маппер
+//                .collect(Collectors.toList());
+//        model.addAttribute("events", eventDtos); // Передаем DTO в модель
+//        return "events/list";
+//    }
 
     @GetMapping("/create")
     public String createEventForm(Model model) {
@@ -167,5 +167,20 @@ public class EventController {
 
         eventService.deleteById(id, currentUser);
         return "redirect:/events";
+    }
+
+    @GetMapping
+    public String listEvents(@RequestParam(defaultValue = "startTime") String sort,
+                             @RequestParam(defaultValue = "asc") String direction,
+                             Model model) {
+        List<Event> events = eventService.findAllSorted(sort, direction); // <-- Вызов нового метода
+        List<EventDto> eventDtos = events.stream()
+                .map(eventMapper::toEventDto)
+                .collect(Collectors.toList());
+        model.addAttribute("events", eventDtos);
+        // Передаем параметры сортировки в модель для отображения в UI
+        model.addAttribute("sort", sort);
+        model.addAttribute("direction", direction);
+        return "events/list";
     }
 }

@@ -45,7 +45,7 @@
                 <p><strong>End Time:</strong> <span th:text="${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}">End Time</span></p>
                 <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
                 <p><strong>Participants:</strong> <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
-                <p><strong>Organizer:</strong> <span th:text="${event.organizerUsername}">Organizer</span></p>
+                <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
             </div>
 
             <!-- Показываем кнопки Join/Leave, если пользователь аутентифицирован и не является организатором -->
