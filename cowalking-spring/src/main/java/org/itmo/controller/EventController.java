@@ -43,18 +43,16 @@ public class EventController {
 
     @GetMapping("/create")
     public String createEventForm(Model model) {
-        // --- ИСПРАВЛЕНО: проверка только аутентификации (уже сделана в SecurityFilterChain) ---
-        // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
-        //     return "redirect:/login";
-        // }
-        // User currentUser = (User) auth.getPrincipal();
-        // if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ORGANIZER) &&
-        //         !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
-        //     return "redirect:/events";
-        // }
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-        // Проверка аутентификации и роли теперь в SecurityConfig
+        // Проверяем права: только ADMIN или ORGANIZER могут создавать
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
+            return "redirect:/login";
+        }
+        User currentUser = (User) auth.getPrincipal();
+        if (!currentUser.getRole().equals(org.itmo.model.enums.UserRole.ORGANIZER) &&
+                !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
+            return "redirect:/events";
+        }
 
         model.addAttribute("event", new EventDto()); // Передаем DTO в модель
         model.addAttribute("locations", locationService.findAll());

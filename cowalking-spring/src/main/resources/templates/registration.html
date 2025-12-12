@@ -24,6 +24,16 @@
             </div>
 
             <div class="form-group">
+                <label for="phone">Phone (e.g., +7(XXX)-XXX-XX-XX):</label>
+                <input type="tel" id="phone" th:field="*{phone}" placeholder="+7(XXX)-XXX-XX-XX">
+            </div>
+
+            <div class="form-group">
+                <label for="bio">Bio (Optional):</label>
+                <textarea id="bio" th:field="*{bio}" rows="3" maxlength="1000" placeholder="Tell us about yourself..."></textarea>
+            </div>
+
+            <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" th:field="*{password}" required>
             </div>

@@ -14,6 +14,7 @@
                 <ul class="nav-menu">
                     <li><a href="/events">Events</a></li>
                     <li><a href="/locations">Locations</a></li>
+                    <!-- Show Profile link and Logout button if authenticated -->
                     <li sec:authorize="isAuthenticated()">
                         <a sec:authentication="principal.username" href="/users/profile">Profile</a>
                     </li>
@@ -22,6 +23,7 @@
                             <button type="submit">Logout</button>
                         </form>
                     </li>
+                    <!-- Show Login/Register buttons if not authenticated -->
                     <li sec:authorize="!isAuthenticated()">
                         <a href="/login">Login</a>
                     </li>
@@ -37,8 +39,8 @@
         <div class="container">
             <h1>Events</h1>
 
-            <!-- Показываем кнопку Create Event, если пользователь аутентифицирован и имеет роль ORGANIZER или ADMIN -->
-            <div sec:authorize="hasRole('ORGANIZER') or hasRole('ADMIN')">
+            <!-- Show Create Event button if user is authenticated and has role ADMIN or ORGANIZER -->
+            <div sec:authorize="hasRole('ADMIN') or hasRole('ORGANIZER')">
                 <a href="/events/create" class="btn-primary">Create Event</a>
             </div>
 
@@ -47,12 +49,14 @@
                     <h3 th:text="${event.title}">Event Title</h3>
                     <p th:text="${event.description}">Event Description</p>
                     <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
+                    <!-- --- ИСПРАВЛЕНО: используем #temporals.format --- -->
                     <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
+                    <!-- --- КОНЕЦ ИСПРАВЛЕНИЯ --- -->
                     <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                     <p>Organizer: <span th:text="${event.organizerUsername}">Organizer Name</span></p>
                     <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
 
-                    <!-- Показываем кнопки Join/Leave, если пользователь аутентифицирован и не является организатором -->
+                    <!-- Show Join/Leave buttons if authenticated and not organizer -->
                     <div sec:authorize="isAuthenticated() and !@userService.findById(#authentication.principal.id).isOrganizerOf(event.id)">
                         <form th:action="@{/participations/join/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
                             <button type="submit" class="btn-primary">Join Event</button>
@@ -62,7 +66,7 @@
                         </form>
                     </div>
 
-                    <!-- Показываем кнопки Edit/Delete, если пользователь аутентифицирован и является организатором или админом -->
+                    <!-- Show Edit/Delete buttons if user is organizer or admin -->
                     <div sec:authorize="isAuthenticated() and (#authentication.principal.id == event.organizerId or hasRole('ADMIN'))">
                         <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn-secondary">Edit Event</a>
                         <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post" style="display:inline;">

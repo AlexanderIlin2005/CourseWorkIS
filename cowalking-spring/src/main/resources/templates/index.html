@@ -14,7 +14,7 @@
                 <ul class="nav-menu">
                     <li><a href="/events">Events</a></li>
                     <li><a href="/locations">Locations</a></li>
-                    <!-- Проверяем аутентификацию и наличие principal -->
+                    <!-- Show Profile link and Logout button if authenticated -->
                     <li sec:authorize="isAuthenticated()">
                         <a sec:authentication="principal.username" href="/users/profile">Profile</a>
                     </li>
@@ -23,7 +23,7 @@
                             <button type="submit">Logout</button>
                         </form>
                     </li>
-                    <!-- Отображаем Login/Registration, если пользователь НЕ аутентифицирован -->
+                    <!-- Show Login/Register buttons if not authenticated -->
                     <li sec:authorize="!isAuthenticated()">
                         <a href="/login">Login</a>
                     </li>

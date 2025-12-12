@@ -84,9 +84,9 @@ public class DataInitializer {
         } else {
             logger.info("Admin user already exists. Updating password and role.");
             // --- ОБНОВЛЯЕМ пароль и роль ---
-            existingAdmin.setPassword("admin"); // raw password, будет захеширован
-            existingAdmin.setRole(UserRole.ADMIN);
-            existingAdmin.setActive(true);
+            //existingAdmin.setPassword("admin"); // raw password, будет захеширован
+            //existingAdmin.setRole(UserRole.ADMIN);
+            //existingAdmin.setActive(true);
             // Хеширование пароля происходит в UserService.save
             userService.save(existingAdmin);
             logger.info("Default admin user updated.");

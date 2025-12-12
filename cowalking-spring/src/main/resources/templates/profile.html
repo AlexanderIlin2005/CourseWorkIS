@@ -1,5 +1,6 @@
+<!-- src/main/resources/templates/profile.html -->
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,50 +8,136 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="nav-container">
-                <a href="/" class="logo">CoWalking</a>
-                <ul class="nav-menu">
-                    <li><a href="/events">Events</a></li>
-                    <li><a href="/locations">Locations</a></li>
-                    <li><a href="/users/profile" th:text="${#authentication.principal.username}">Profile</a></li>
-                    <li>
-                        <form th:action="@{/logout}" method="post" style="display:inline;">
-                            <button type="submit">Logout</button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-
-    <main>
-        <div class="container">
-            <h1>Profile</h1>
-
-            <div th:if="${message}" class="success" th:text="${message}">Success message</div>
-            <div th:if="${error}" class="error" th:text="${error}">Error message</div>
-
-            <form th:action="@{/users/update}" method="post" th:object="${user}">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" th:field="*{username}" readonly>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" th:field="*{email}" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="role">Role:</label>
-                    <input type="text" id="role" th:value="*{role}" readonly>
-                </div>
-
-                <button type="submit" class="btn-primary">Update Profile</button>
-            </form>
+<header>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">CoWalking</a>
+            <ul class="nav-menu">
+                <li><a href="/events">Events</a></li>
+                <li><a href="/locations">Locations</a></li>
+                <!-- Show Profile link and Logout button if authenticated -->
+                <li sec:authorize="isAuthenticated()">
+                    <a sec:authentication="principal.username" href="/users/profile">Profile</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+                <!-- Show Login/Register buttons if not authenticated -->
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/login">Login</a>
+                </li>
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/registration">Register</a>
+                </li>
+            </ul>
         </div>
-    </main>
+    </nav>
+</header>
+
+<main>
+    <div class="container">
+        <h1>Profile</h1>
+
+        <div th:if="${message}" class="success" th:text="${message}">Success message</div>
+        <div th:if="${error}" class="error" th:text="${error}">Error message</div>
+
+        <form th:action="@{/users/update}" method="post" th:object="${user}">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" th:field="*{username}" readonly> <!-- readonly для username -->
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" th:field="*{email}" required> <!-- editable -->
+            </div>
+
+            <!-- --- ДОБАВЛЕНО: поля для редактирования phone и bio --- -->
+            <div class="form-group">
+                <label for="phone">Phone (e.g., +7(XXX)-XXX-XX-XX):</label>
+                <input type="tel" id="phone" th:field="*{phone}" placeholder="+7(XXX)-XXX-XX-XX">
+            </div>
+
+            <div class="form-group">
+                <label for="bio">Bio:</label>
+                <textarea id="bio" th:field="*{bio}" rows="5" maxlength="1000" placeholder="Tell us about yourself..."></textarea>
+            </div>
+            <!-- --- КОНЕЦ ДОБАВЛЕНИЯ --- -->
+
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <input type="text" id="role" th:value="*{role}" readonly> <!-- readonly для role -->
+            </div>
+
+            <button type="submit" class="btn-primary">Update Profile</button>
+        </form>
+
+        <!-- Show events organized by the user -->
+        <div sec:authorize="isAuthenticated()" th:if="${organizedEvents != null and !organizedEvents.isEmpty()}">
+            <h2>Your Organized Events</h2>
+            <div class="events-grid"> <!-- Используем тот же стиль, что и на /events -->
+                <div class="event-card" th:each="event : ${organizedEvents}">
+                    <h3 th:text="${event.title}">Event Title</h3>
+                    <p th:text="${event.description}">Event Description</p>
+                    <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
+                    <!-- Используем форматирование через JavaScript -->
+                    <p>Time: <span class="local-date" th:text="${event.startTime}">Start Time</span></p>
+                    <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                    <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
+                    <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn-secondary">Edit Event</a>
+                    <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this event?')">Delete Event</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div sec:authorize="isAuthenticated()" th:unless="${organizedEvents != null and !organizedEvents.isEmpty()}">
+            <h2>Your Organized Events</h2>
+            <p>No events organized yet.</p>
+        </div>
+
+        <a href="/events/create" class="btn-primary" sec:authorize="hasRole('ADMIN') or hasRole('ORGANIZER')">Create New Event</a>
+    </div>
+</main>
+
+<!-- --- ДОБАВЛЕННЫЙ JavaScript для форматирования даты --- -->
+<script>
+    // Функция для преобразования строки LocalDateTime (yyyy-MM-ddTHH:mm:ss) в dd/MM/yyyy HH:mm
+    function formatLocalDateTime(dateStr) {
+        if (!dateStr) return dateStr; // Если строка пуста, возвращаем как есть
+
+        // Разбираем строку вручную
+        const [datePart, timePart] = dateStr.split('T');
+        if (!datePart || !timePart) return dateStr; // Если формат не совпадает, возвращаем как есть
+
+        const [year, month, day] = datePart.split('-');
+        const [hour, minute, second] = timePart.split(':'); // Секунды могут быть, но не нужны
+
+        // Проверим, что все компоненты - числа
+        if (!year || !month || !day || !hour || !minute || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute)) {
+            console.error("Invalid date format:", dateStr);
+            return dateStr; // Если что-то не число, возвращаем как есть
+        }
+
+        // Формируем строку в нужном формате: dd/MM/yyyy HH:mm
+        // Используем parseInt для чисел, чтобы избежать строкового сложения
+        const formattedDate = `${parseInt(day)}/${parseInt(month)}/${parseInt(year)} ${parseInt(hour)}:${parseInt(minute).toString().padStart(2, '0')}`;
+        return formattedDate;
+    }
+
+    // При загрузке DOM, находим все элементы с классом 'local-date' и форматируем их содержимое
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateElements = document.querySelectorAll('.local-date');
+        dateElements.forEach(function(element) {
+            const originalText = element.textContent.trim();
+            const formattedText = formatLocalDateTime(originalText);
+            element.textContent = formattedText;
+        });
+    });
+</script>
+<!-- --- КОНЕЦ ДОБАВЛЕННОГО JavaScript --- -->
 </body>
 </html>
