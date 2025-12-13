@@ -92,15 +92,14 @@
         </form>
 
         <!-- Show events organized by the user -->
-        <div sec:authorize="isAuthenticated()" th:if="${organizedEvents != null and !organizedEvents.isEmpty()}">
-            <h2>Your Organized Events</h2>
-            <div class="events-grid"> <!-- Используем тот же стиль, что и на /events -->
-                <div class="event-card" th:each="event : ${organizedEvents}">
+        <div sec:authorize="isAuthenticated()">
+            <h2>Your Active Events</h2>
+            <div class="events-grid" th:if="${activeOrganizedEvents != null and !activeOrganizedEvents.isEmpty()}">
+                <div class="event-card" th:each="event : ${activeOrganizedEvents}">
                     <h3 th:text="${event.title}">Event Title</h3>
                     <p th:text="${event.description}">Event Description</p>
-                    <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
-                    <!-- Используем форматирование через JavaScript -->
-                    <p>Time: <span class="local-date" th:text="${event.startTime}">Start Time</span></p>
+                    <!-- ИСПРАВЛЕНО: Используем строковый литерал |...| -->
+                    <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
                     <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                     <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
                     <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn-secondary">Edit Event</a>
@@ -109,52 +108,27 @@
                     </form>
                 </div>
             </div>
-        </div>
+            <p th:unless="${activeOrganizedEvents != null and !activeOrganizedEvents.isEmpty()}">No active events organized yet.</p>
 
-        <div sec:authorize="isAuthenticated()" th:unless="${organizedEvents != null and !organizedEvents.isEmpty()}">
-            <h2>Your Organized Events</h2>
-            <p>No events organized yet.</p>
+            <h2>Your Completed Events</h2>
+            <div class="events-grid" th:if="${completedOrganizedEvents != null and !completedOrganizedEvents.isEmpty()}">
+                <div class="event-card" th:each="event : ${completedOrganizedEvents}">
+                    <h3 th:text="${event.title}">Event Title</h3>
+                    <p th:text="${event.description}">Event Description</p>
+                    <!-- ИСПРАВЛЕНО: Используем строковый литерал |...| -->
+                    <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
+                    <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                    <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
+                    <!-- No Edit/Delete for completed events -->
+                </div>
+            </div>
+            <p th:unless="${completedOrganizedEvents != null and !completedOrganizedEvents.isEmpty()}">No completed events yet.</p>
         </div>
 
         <a href="/events/create" class="btn-primary" sec:authorize="hasRole('ADMIN') or hasRole('ORGANIZER')">Create New Event</a>
     </div>
 </main>
 
-<!-- --- ДОБАВЛЕННЫЙ JavaScript для форматирования даты --- -->
-<script>
-    // Функция для преобразования строки LocalDateTime (yyyy-MM-ddTHH:mm:ss) в dd/MM/yyyy HH:mm
-    function formatLocalDateTime(dateStr) {
-        if (!dateStr) return dateStr; // Если строка пуста, возвращаем как есть
 
-        // Разбираем строку вручную
-        const [datePart, timePart] = dateStr.split('T');
-        if (!datePart || !timePart) return dateStr; // Если формат не совпадает, возвращаем как есть
-
-        const [year, month, day] = datePart.split('-');
-        const [hour, minute, second] = timePart.split(':'); // Секунды могут быть, но не нужны
-
-        // Проверим, что все компоненты - числа
-        if (!year || !month || !day || !hour || !minute || isNaN(year) || isNaN(month) || isNaN(day) || isNaN(hour) || isNaN(minute)) {
-            console.error("Invalid date format:", dateStr);
-            return dateStr; // Если что-то не число, возвращаем как есть
-        }
-
-        // Формируем строку в нужном формате: dd/MM/yyyy HH:mm
-        // Используем parseInt для чисел, чтобы избежать строкового сложения
-        const formattedDate = `${parseInt(day)}/${parseInt(month)}/${parseInt(year)} ${parseInt(hour)}:${parseInt(minute).toString().padStart(2, '0')}`;
-        return formattedDate;
-    }
-
-    // При загрузке DOM, находим все элементы с классом 'local-date' и форматируем их содержимое
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateElements = document.querySelectorAll('.local-date');
-        dateElements.forEach(function(element) {
-            const originalText = element.textContent.trim();
-            const formattedText = formatLocalDateTime(originalText);
-            element.textContent = formattedText;
-        });
-    });
-</script>
-<!-- --- КОНЕЦ ДОБАВЛЕННОГО JavaScript --- -->
 </body>
 </html>

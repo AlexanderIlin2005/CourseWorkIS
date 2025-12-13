@@ -1,0 +1,57 @@
+<!-- src/main/resources/templates/events/completed-events.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completed Events - CoWalking</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">CoWalking</a>
+            <ul class="nav-menu">
+                <li><a href="/events/active">Active Events</a></li>
+                <li><a href="/events/completed">Completed Events</a></li>
+                <li><a href="/locations">Locations</a></li>
+                <li sec:authorize="isAuthenticated()">
+                    <a sec:authentication="principal.username" href="/users/profile">Profile</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/login">Login</a>
+                </li>
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/registration">Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <div class="container">
+        <h1>Completed Events</h1>
+
+        <div class="events-grid">
+            <div class="event-card" th:each="event : ${events}">
+                <h3 th:text="${event.title}">Event Title</h3>
+                <p th:text="${event.description}">Event Description</p>
+                <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
+                <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
+                <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
+                <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
+                <!-- No Join/Leave/Edit/Delete buttons for completed events -->
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

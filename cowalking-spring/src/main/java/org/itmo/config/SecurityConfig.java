@@ -23,6 +23,8 @@ public class SecurityConfig {
     @Autowired
     private PasswordEncoder passwordEncoder; // Сервис для PasswordEncoder
 
+
+
     @Bean
     public UserDetailsService userDetailsService() {
         return userService; // Возвращаем ваш UserService (UserDetailsService)
@@ -34,6 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Разрешаем доступ
                         .requestMatchers("/events", "/events/{id}").permitAll() // Разрешаем просматривать события всем
+                        .requestMatchers("/events/completed", "events/active").permitAll() // Разрешаем просмотр завершённых всем
                         // --- ИСПРАВЛЕНО: разрешаем аутентифицированным пользователям создавать события ---
                         .requestMatchers("/events/create").authenticated() // <-- Только аутентифицированные могут создавать
                         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---

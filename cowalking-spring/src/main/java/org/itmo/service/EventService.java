@@ -16,6 +16,9 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.util.stream.Collectors; // <-- Импортируем Collectors
+
+import org.itmo.util.MoscowTimeUtil; // Импортируем утилиту
 
 @Service
 @RequiredArgsConstructor
@@ -46,25 +49,54 @@ public class EventService {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
-        // Если создаем новый, устанавливаем организатора и статус
+        // Проверка: startTime не может быть в прошлом (по Московскому времени)
+        LocalDateTime currentMoscowTime = MoscowTimeUtil.getCurrentMoscowTime();
+        if (event.getStartTime() != null && event.getStartTime().isBefore(currentMoscowTime.minusMinutes(1))) {
+            throw new IllegalArgumentException("Start time cannot be in the past.");
+        }
+
         if (event.getId() == null) {
             event.setOrganizer(currentUser);
-            event.setStatus(EventStatus.ACTIVE); // Используем внешний enum
+            // Проверка: endTime должна быть после startTime на момент создания
+            if (event.getEndTime() != null && !event.getEndTime().isAfter(event.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time.");
+            }
+            event.setStatus(EventStatus.ACTIVE);
+        } else {
+            // При обновлении события, проверяем, что статус не меняется на COMPLETED вручную
+            // и что нельзя изменить endTime завершённого события
+            Event existingEvent = eventRepository.findById(event.getId())
+                    .orElseThrow(() -> new RuntimeException("Event not found"));
+            if (EventStatus.COMPLETED.equals(existingEvent.getStatus())) {
+                // Нельзя редактировать завершённое событие
+                // Можем бросить исключение или игнорировать изменения endTime/status
+                throw new SecurityException("Cannot edit a completed event.");
+            }
+            // Проверка: endTime должна быть после startTime
+            if (event.getEndTime() != null && !event.getEndTime().isAfter(event.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time.");
+            }
+            // Сохраняем оригинальный организатора
+            event.setOrganizer(existingEvent.getOrganizer());
         }
-        // Обновляем время обновления
-        event.setUpdatedAt(LocalDateTime.now());
 
+        event.setUpdatedAt(LocalDateTime.now());
         return eventRepository.save(event);
     }
 
     @Transactional
     public void deleteById(Long id, User currentUser) {
-        // Проверка прав: только организатор или админ может удалить
-        // Эта проверка теперь должна быть в контроллере, до вызова service
-        // if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
-        //     !currentUser.getRole().equals(UserRole.ADMIN)) {
-        //     throw new SecurityException("You can only delete events you organized");
-        // }
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Проверка прав и статуса
+        if (EventStatus.COMPLETED.equals(event.getStatus())) {
+            throw new SecurityException("Cannot delete a completed event.");
+        }
+        if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
+                !currentUser.getRole().equals(UserRole.ADMIN)) {
+            throw new SecurityException("You can only delete active events you organized.");
+        }
 
         eventRepository.deleteById(id);
     }
@@ -82,4 +114,44 @@ public class EventService {
         Sort sortDirection = "asc".equals(direction) ? Sort.by(sort).ascending() : Sort.by(sort).descending();
         return eventRepository.findAll(sortDirection);
     }
+
+    // Новый метод для получения активных событий
+    public List<Event> findActiveEvents() {
+        List<Event> allEvents = eventRepository.findAll();
+        LocalDateTime currentMoscowTime = MoscowTimeUtil.getCurrentMoscowTime();
+        return allEvents.stream()
+                .filter(event -> {
+                    // Обновляем статус события, если необходимо
+                    updateEventStatusIfNeeded(event);
+                    // Фильтруем только ACTIVE события
+                    return EventStatus.ACTIVE.equals(event.getStatus());
+                })
+                .collect(Collectors.toList());
+    }
+
+    // Новый метод для получения завершённых событий
+    public List<Event> findCompletedEvents() {
+        List<Event> allEvents = eventRepository.findAll();
+        return allEvents.stream()
+                .filter(event -> {
+                    // Обновляем статус события, если необходимо
+                    updateEventStatusIfNeeded(event);
+                    // Фильтруем только COMPLETED события
+                    return EventStatus.COMPLETED.equals(event.getStatus());
+                })
+                .collect(Collectors.toList());
+    }
+
+    // Новый метод для обновления статуса события
+    public void updateEventStatusIfNeeded(Event event) {
+        if (EventStatus.ACTIVE.equals(event.getStatus()) &&
+                MoscowTimeUtil.isEventCompleted(event.getEndTime())) {
+            event.setStatus(EventStatus.COMPLETED);
+            // Обновляем только статус и updated_at
+            event.setUpdatedAt(LocalDateTime.now());
+            eventRepository.save(event); // Сохраняем обновление статуса
+        }
+    }
+
+
 }

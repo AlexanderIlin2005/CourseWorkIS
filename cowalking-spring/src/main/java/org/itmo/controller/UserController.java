@@ -25,6 +25,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.List; // <-- Импортируем List
 import java.util.stream.Collectors; // <-- Импортируем Collectors
 
+import org.itmo.dto.EventDto;
+import org.itmo.model.Event;
+import org.itmo.model.enums.EventStatus;
+
 @Controller
 @RequiredArgsConstructor
 public class UserController {
@@ -57,25 +61,32 @@ public class UserController {
 
         // Convert User entity to UserDto for the view
         UserDto userDto = userMapper.toUserDto(currentUser);
-        logger.debug("Converted User to UserDto: {}", userDto);
         model.addAttribute("user", userDto);
 
-        // --- ПОЛУЧАЕМ И ПЕРЕДАЕМ ОРГАНИЗОВАННЫЕ СОБЫТИЯ ---
-        try {
-            List<org.itmo.model.Event> organizedEvents = userService.findOrganizedEvents(currentUser.getId()); // Вызываем метод из UserService
-            logger.debug("Found {} events organized by user ID={}", organizedEvents.size(), currentUser.getId());
+        // Получаем все события пользователя
+        List<Event> organizedEvents = userService.findOrganizedEvents(currentUser.getId());
 
-            // Преобразуем сущности Event в DTO для представления
-            List<org.itmo.dto.EventDto> organizedEventDtos = organizedEvents.stream()
-                    .map(eventMapper::toEventDto) // Используем EventMapper
-                    .collect(Collectors.toList());
+        // Фильтруем активные и завершённые
+        List<EventDto> activeOrganizedEvents = organizedEvents.stream()
+                .filter(event -> {
+                    // Обновляем статус при необходимости
+                    eventService.updateEventStatusIfNeeded(event);
+                    return EventStatus.ACTIVE.equals(event.getStatus());
+                })
+                .map(eventMapper::toEventDto)
+                .collect(Collectors.toList());
 
-            model.addAttribute("organizedEvents", organizedEventDtos); // Передаем DTO в модель
-        } catch (Exception e) {
-            logger.error("Error fetching events organized by user ID={}", currentUser.getId(), e);
-            model.addAttribute("organizedEvents", List.of()); // Передаем пустой список в случае ошибки
-        }
-        // --- КОНЕЦ ПОЛУЧЕНИЯ ---
+        List<EventDto> completedOrganizedEvents = organizedEvents.stream()
+                .filter(event -> {
+                    // Обновляем статус при необходимости (на случай, если не обновился в активных)
+                    eventService.updateEventStatusIfNeeded(event);
+                    return EventStatus.COMPLETED.equals(event.getStatus());
+                })
+                .map(eventMapper::toEventDto)
+                .collect(Collectors.toList());
+
+        model.addAttribute("activeOrganizedEvents", activeOrganizedEvents);
+        model.addAttribute("completedOrganizedEvents", completedOrganizedEvents);
 
         return "profile";
     }
