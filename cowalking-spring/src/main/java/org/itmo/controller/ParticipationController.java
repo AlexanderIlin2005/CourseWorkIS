@@ -33,7 +33,9 @@ public class ParticipationController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/events/" + eventId;
+        // --- ИСПРАВЛЕНО: Редирект на список активных событий ---
+        return "redirect:/events/active";
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     }
 
     @PostMapping("/participations/leave/{eventId}")
@@ -48,7 +50,9 @@ public class ParticipationController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/events/" + eventId;
+        // --- ИСПРАВЛЕНО: Редирект на список активных событий ---
+        return "redirect:/events/active";
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
     }
 
     // --- НОВЫЙ МЕТОД: Подтверждение заявки ---
