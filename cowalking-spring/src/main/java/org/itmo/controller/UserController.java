@@ -113,6 +113,14 @@ public class UserController {
         model.addAttribute("receivedApplications", receivedApplicationDtos);
         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
+        // --- НОВОЕ: Получаем подтвержденные события пользователя как участника ---
+        List<Event> confirmedEvents = userService.findConfirmedEventsForParticipant(currentUser.getId());
+        List<EventDto> confirmedEventDtos = confirmedEvents.stream()
+                .map(eventMapper::toEventDto)
+                .collect(Collectors.toList());
+        model.addAttribute("confirmedEvents", confirmedEventDtos);
+        // --- КОНЕЦ НОВОГО ---
+
         model.addAttribute("activeOrganizedEvents", activeOrganizedEvents);
         model.addAttribute("completedOrganizedEvents", completedOrganizedEvents);
 

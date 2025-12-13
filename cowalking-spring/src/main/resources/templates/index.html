@@ -31,6 +31,10 @@
                     <li sec:authorize="!isAuthenticated()">
                         <a href="/registration">Register</a>
                     </li>
+                    <!-- Ссылка для админа -->
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <a href="/admin/users">Manage Users</a>
+                    </li>
                 </ul>
             </div>
         </nav>

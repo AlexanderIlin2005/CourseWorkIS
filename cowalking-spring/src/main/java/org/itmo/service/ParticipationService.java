@@ -43,18 +43,26 @@ public class ParticipationService {
         // Проверка: не отправлял ли уже пользователь заявку
         Optional<Participation> existingParticipation = participationRepository
                 .findByParticipantIdAndEventId(user.getId(), eventId);
+
+        // Разрешаем создать новую заявку, если старая была CANCELLED
         if (existingParticipation.isPresent()) {
-            throw new RuntimeException("You have already applied to join this event");
+            Participation existing = existingParticipation.get();
+            // Если заявка активна (PENDING или CONFIRMED), запрещаем новую
+            if (existing.getStatus() == ParticipationStatus.PENDING ||
+                    existing.getStatus() == ParticipationStatus.CONFIRMED) {
+                throw new RuntimeException("You have already applied to join this event");
+            }
+            // Если заявка CANCELLED, удаляем старую и создаем новую
+            participationRepository.delete(existing);
         }
 
         Participation participation = new Participation();
         participation.setParticipant(user);
         participation.setEvent(event);
-        participation.setStatus(ParticipationStatus.PENDING); // <-- Новый статус PENDING
+        participation.setStatus(ParticipationStatus.PENDING);
         participation.setJoinedAt(LocalDateTime.now());
 
         return participationRepository.save(participation);
-        // ЗАМЕЧАНИЕ: currentParticipants НЕ увеличивается здесь
     }
 
     @Transactional
@@ -127,6 +135,11 @@ public class ParticipationService {
         participation.setStatus(ParticipationStatus.CANCELLED);
         participationRepository.save(participation);
         // currentParticipants НЕ меняется
+    }
+
+    public Participation findByParticipantIdAndEventId(Long participantId, Long eventId) {
+        return participationRepository.findByParticipantIdAndEventId(participantId, eventId)
+                .orElse(null); // Возвращаем null если не найдено
     }
 
 

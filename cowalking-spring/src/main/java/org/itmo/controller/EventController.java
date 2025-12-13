@@ -10,9 +10,7 @@ import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
 import org.itmo.mapper.EventMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication; // <-- ДОБАВЬТЕ ЭТОТ ИМПОРТ
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +25,7 @@ public class EventController {
 
     private final EventService eventService;
     private final LocationService locationService;
-    private final UserService userService;
+    private final UserService userService; // <-- УЖЕ ЕСТЬ
     private final EventMapper eventMapper;
 
     // Основной список событий теперь перенаправляет на активные
@@ -59,12 +57,11 @@ public class EventController {
     }
 
     @GetMapping("/create")
-    public String createEventForm(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+    public String createEventForm(Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }
-        User currentUser = (User) auth.getPrincipal();
+        User currentUser = (User) authentication.getPrincipal();
 
         model.addAttribute("event", new EventDto());
         model.addAttribute("locations", locationService.findAll());
@@ -72,12 +69,11 @@ public class EventController {
     }
 
     @PostMapping("/create")
-    public String createEvent(@ModelAttribute EventDto eventDto, Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+    public String createEvent(@ModelAttribute EventDto eventDto, Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }
-        User currentUser = (User) auth.getPrincipal();
+        User currentUser = (User) authentication.getPrincipal();
 
         Event event = eventMapper.toEvent(eventDto);
         if (event.getId() == null) {
@@ -96,24 +92,32 @@ public class EventController {
     }
 
     @GetMapping("/{id}")
-    public String eventDetails(@PathVariable Long id, Model model) {
+    public String eventDetails(@PathVariable Long id, Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
         Event event = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         EventDto eventDto = eventMapper.toEventDto(event);
         model.addAttribute("event", eventDto);
+
+        // Добавляем ID текущего пользователя, если он аутентифицирован
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof User) {
+            User currentUser = (User) authentication.getPrincipal();
+            model.addAttribute("currentUserId", currentUser.getId());
+        } else {
+            model.addAttribute("currentUserId", null);
+        }
+
         return "events/details";
     }
 
     @GetMapping("/{id}/edit")
-    public String editEventForm(@PathVariable Long id, Model model) {
+    public String editEventForm(@PathVariable Long id, Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
         Event event = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }
-        User currentUser = (User) auth.getPrincipal();
+        User currentUser = (User) authentication.getPrincipal();
 
         if (!event.getOrganizer().getId().equals(currentUser.getId()) &&
                 !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
@@ -127,15 +131,14 @@ public class EventController {
     }
 
     @PostMapping("/{id}/edit")
-    public String editEvent(@PathVariable Long id, @ModelAttribute EventDto eventDto, Model model) {
+    public String editEvent(@PathVariable Long id, @ModelAttribute EventDto eventDto, Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
         Event existingEvent = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }
-        User currentUser = (User) auth.getPrincipal();
+        User currentUser = (User) authentication.getPrincipal();
 
         if (!existingEvent.getOrganizer().getId().equals(currentUser.getId()) &&
                 !currentUser.getRole().equals(org.itmo.model.enums.UserRole.ADMIN)) {
@@ -158,12 +161,11 @@ public class EventController {
     }
 
     @PostMapping("/{id}/delete")
-    public String deleteEvent(@PathVariable Long id) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null || !(auth.getPrincipal() instanceof User)) {
+    public String deleteEvent(@PathVariable Long id, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }
-        User currentUser = (User) auth.getPrincipal();
+        User currentUser = (User) authentication.getPrincipal();
 
         eventService.deleteById(id, currentUser);
         return "redirect:/events";

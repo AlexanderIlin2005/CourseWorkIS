@@ -26,4 +26,6 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     @Query("SELECT p FROM Participation p JOIN FETCH p.participant JOIN FETCH p.event WHERE p.event.organizer.id = :organizerId AND p.status = :status")
     List<Participation> findByEventOrganizerIdAndStatus(@Param("organizerId") Long organizerId, @Param("status") ParticipationStatus status);
     // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+
 }

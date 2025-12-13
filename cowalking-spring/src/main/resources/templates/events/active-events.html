@@ -76,21 +76,7 @@
                 <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
 
-                <div sec:authorize="isAuthenticated()">
-                    <form th:action="@{/participations/join/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
-                        <button type="submit" class="btn-primary">Join Event</button>
-                    </form>
-                    <form th:action="@{/participations/leave/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
-                        <button type="submit" class="btn-secondary">Leave Event</button>
-                    </form>
-                </div>
 
-                <div sec:authorize="hasRole('ADMIN')">
-                    <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn-secondary">Edit Event</a>
-                    <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post" style="display:inline;">
-                        <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this event?')">Delete Event</button>
-                    </form>
-                </div>
             </div>
         </div>
     </div>

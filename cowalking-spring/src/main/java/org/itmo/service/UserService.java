@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory; // <-- Добавьте импорт
 import org.itmo.model.enums.ParticipationStatus;
 import org.itmo.model.Participation;
 
+import java.util.stream.Collectors;
+
 
 
 @Service
@@ -157,4 +159,17 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
     // --- КОНЕЦ НОВЫХ МЕТОДОВ ---
+
+    // --- НОВЫЙ МЕТОД: Получение подтвержденных событий пользователя ---
+    public List<Event> findConfirmedEventsForParticipant(Long participantId) {
+        List<Participation> participations = participationRepository.findByParticipantIdAndStatus(
+                participantId,
+                ParticipationStatus.CONFIRMED
+        );
+        return participations.stream()
+                .map(Participation::getEvent)
+                .collect(Collectors.toList());
+    }
+    // --- КОНЕЦ НОВОГО МЕТОДА ---
+
 }

@@ -93,6 +93,24 @@
 
         <!-- Show applications and events organized by the user -->
         <div sec:authorize="isAuthenticated()">
+
+            <!-- НОВЫЙ РАЗДЕЛ: События, на которые пользователь записан -->
+            <h2>Your Confirmed Events</h2>
+            <div class="events-grid" th:if="${confirmedEvents != null and !confirmedEvents.isEmpty()}">
+                <div class="event-card" th:each="event : ${confirmedEvents}">
+                    <h3 th:text="${event.title}">Event Title</h3>
+                    <p th:text="${event.description}">Event Description</p>
+                    <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
+                    <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
+                    <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
+                    <!-- Кнопка Leave здесь уместна -->
+                    <form th:action="@{/participations/leave/{eventId}(eventId=${event.id})}" method="post">
+                        <button type="submit" class="btn-secondary">Leave Event</button>
+                    </form>
+                </div>
+            </div>
+            <p th:unless="${confirmedEvents != null and !confirmedEvents.isEmpty()}">You are not confirmed for any events yet.</p>
+
             <!-- Заявки, отправленные пользователем -->
             <h2>Your Applications</h2>
             <div class="events-grid" th:if="${sentApplications != null and !sentApplications.isEmpty()}">
