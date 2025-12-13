@@ -26,8 +26,13 @@ import java.util.List; // <-- Импортируем List
 import java.util.stream.Collectors; // <-- Импортируем Collectors
 
 import org.itmo.dto.EventDto;
+import org.itmo.dto.ParticipationDto;
 import org.itmo.model.Event;
 import org.itmo.model.enums.EventStatus;
+
+import org.itmo.model.Participation;
+
+import org.itmo.mapper.ParticipationMapper;
 
 @Controller
 @RequiredArgsConstructor
@@ -42,6 +47,13 @@ public class UserController {
 
     @Autowired
     private EventMapper eventMapper; // <-- Внедряем EventMapper
+
+    // --- ВНЕДРИМ ParticipationMapper ---
+    @Autowired
+    private ParticipationMapper participationMapper; // <-- 2. ОБЪЯВИТЕ ПОЛЕ
+    // --- КОНЕЦ ВНЕДРЕНИЯ ---
+
+
     // --- КОНЕЦ ВНЕДРЕНИЯ ---
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class); // <-- Логгер
@@ -84,6 +96,22 @@ public class UserController {
                 })
                 .map(eventMapper::toEventDto)
                 .collect(Collectors.toList());
+
+        // --- ИСПРАВЛЕНО: Используем конструктор ParticipationDto ---
+        // Заявки, отправленные пользователем
+        List<Participation> sentApplications = userService.findPendingApplicationsSentByUser(currentUser.getId());
+        List<ParticipationDto> sentApplicationDtos = sentApplications.stream()
+                .map(ParticipationDto::new) // <-- Явный вызов конструктора
+                .collect(Collectors.toList());
+        model.addAttribute("sentApplications", sentApplicationDtos);
+
+        // Заявки на события пользователя (если он организатор)
+        List<Participation> receivedApplications = userService.findPendingApplicationsForOrganizer(currentUser.getId());
+        List<ParticipationDto> receivedApplicationDtos = receivedApplications.stream()
+                .map(ParticipationDto::new) // <-- Явный вызов конструктора
+                .collect(Collectors.toList());
+        model.addAttribute("receivedApplications", receivedApplicationDtos);
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
         model.addAttribute("activeOrganizedEvents", activeOrganizedEvents);
         model.addAttribute("completedOrganizedEvents", completedOrganizedEvents);

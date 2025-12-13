@@ -50,4 +50,42 @@ public class ParticipationController {
 
         return "redirect:/events/" + eventId;
     }
+
+    // --- НОВЫЙ МЕТОД: Подтверждение заявки ---
+    @PostMapping("/participations/confirm/{participationId}")
+    public String confirmParticipation(@PathVariable Long participationId, RedirectAttributes redirectAttributes) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
+
+        try {
+            participationService.confirmParticipation(participationId, currentUser);
+            redirectAttributes.addFlashAttribute("message", "Application confirmed!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        // Перенаправляем обратно на страницу события
+        // Нужно получить ID события из participationId
+        // Для простоты, предположим, что у нас есть метод в сервисе
+        // Long eventId = participationService.getEventIdByParticipationId(participationId);
+        // return "redirect:/events/" + eventId;
+        // Или просто на профиль
+        return "redirect:/users/profile";
+    }
+
+    // --- НОВЫЙ МЕТОД: Отклонение заявки ---
+    @PostMapping("/participations/reject/{participationId}")
+    public String rejectParticipation(@PathVariable Long participationId, RedirectAttributes redirectAttributes) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
+
+        try {
+            participationService.rejectParticipation(participationId, currentUser);
+            redirectAttributes.addFlashAttribute("message", "Application rejected.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/users/profile";
+    }
 }

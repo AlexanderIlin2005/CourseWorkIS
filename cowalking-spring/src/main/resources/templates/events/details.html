@@ -48,14 +48,34 @@
                 <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
             </div>
 
-            <!-- Показываем кнопки Join/Leave, если пользователь аутентифицирован и не является организатором -->
-            <div sec:authorize="isAuthenticated() and !@userService.findById(#authentication.principal.id).isOrganizerOf(event.id)">
-                <form th:action="@{/participations/join/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="btn-primary">Join Event</button>
-                </form>
-                <form th:action="@{/participations/leave/{eventId}(eventId=${event.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="btn-secondary">Leave Event</button>
-                </form>
+            <!-- Show Join/Leave/Application buttons if authenticated and not the organizer -->
+            <div sec:authorize="isAuthenticated()">
+                <!-- Используем th:with для безопасного получения ID текущего пользователя -->
+                <div th:with="currentUserId=${#authentication?.principal?.id}">
+                    <div th:if="${currentUserId != null and currentUserId != event.organizerId}">
+                        <!-- Используем th:with для получения текущего статуса заявки пользователя на это событие -->
+                        <div th:with="userApplication=${@participationService.findByParticipantIdAndEventId(currentUserId, event.id)}">
+                            <div th:if="${userApplication == null}">
+                                <!-- Пользователь еще не подавал заявку -->
+                                <form th:action="@{/participations/join/{eventId}(eventId=${event.id})}" method="post">
+                                    <button type="submit" class="btn-primary">Apply to Join</button>
+                                </form>
+                            </div>
+                            <div th:if="${userApplication != null}">
+                                <!-- Пользователь уже подавал заявку, показываем статус -->
+                                <p>Your application status: <span th:text="${userApplication.status}">Status</span></p>
+                                <div th:if="${userApplication.status.name() == 'PENDING'}">
+                                    <!-- Заявка на рассмотрении, можно отменить -->
+                                    <form th:action="@{/participations/leave/{eventId}(eventId=${event.id})}" method="post">
+                                        <button type="submit" class="btn-secondary">Cancel Application</button>
+                                    </form>
+                                </div>
+                                <p th:if="${userApplication.status.name() == 'CONFIRMED'}">✅ You are participating!</p>
+                                <p th:if="${userApplication.status.name() == 'CANCELLED'}">❌ Your application was cancelled or rejected.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Показываем кнопки Edit/Delete, если пользователь аутентифицирован и является организатором или админом -->

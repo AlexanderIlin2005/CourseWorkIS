@@ -91,14 +91,49 @@
             <button type="submit" class="btn-primary">Update Profile</button>
         </form>
 
-        <!-- Show events organized by the user -->
+        <!-- Show applications and events organized by the user -->
         <div sec:authorize="isAuthenticated()">
+            <!-- Заявки, отправленные пользователем -->
+            <h2>Your Applications</h2>
+            <div class="events-grid" th:if="${sentApplications != null and !sentApplications.isEmpty()}">
+                <div class="event-card" th:each="app : ${sentApplications}">
+                    <p>Event: <a th:href="@{/events/{id}(id=${app.eventId})}" th:text="${app.eventTitle}">Event Title</a></p>
+                    <p>Status: <span th:text="${app.status}">Status</span></p>
+                    <!-- Кнопка отмены заявки -->
+                    <div th:if="${app.status.name() == 'PENDING'}">
+                        <form th:action="@{/participations/leave/{eventId}(eventId=${app.eventId})}" method="post">
+                            <button type="submit" class="btn-secondary">Cancel Application</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <p th:unless="${sentApplications != null and !sentApplications.isEmpty()}">You have no pending applications.</p>
+
+            <!-- Заявки, полученные от других пользователей (только для организаторов) -->
+            <h2>Applications to Your Events</h2>
+            <div class="events-grid" th:if="${receivedApplications != null and !receivedApplications.isEmpty()}">
+                <div class="event-card" th:each="app : ${receivedApplications}">
+                    <p>Applicant: <a th:href="@{/users/profile/{id}(id=${app.userId})}" th:text="${app.participantUsername}">Applicant</a></p>
+                    <p>Event: <a th:href="@{/events/{id}(id=${app.eventId})}" th:text="${app.eventTitle}">Event Title</a></p>
+                    <p>Status: <span th:text="${app.status}">Status</span></p>
+                    <div th:if="${app.status.name() == 'PENDING'}">
+                        <form th:action="@{/participations/confirm/{participationId}(participationId=${app.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn-primary">Confirm</button>
+                        </form>
+                        <form th:action="@{/participations/reject/{participationId}(participationId=${app.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn-secondary">Reject</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <p th:unless="${receivedApplications != null and !receivedApplications.isEmpty()}">No applications to your events.</p>
+
+            <!-- Существующие разделы с событиями -->
             <h2>Your Active Events</h2>
             <div class="events-grid" th:if="${activeOrganizedEvents != null and !activeOrganizedEvents.isEmpty()}">
                 <div class="event-card" th:each="event : ${activeOrganizedEvents}">
                     <h3 th:text="${event.title}">Event Title</h3>
                     <p th:text="${event.description}">Event Description</p>
-                    <!-- ИСПРАВЛЕНО: Используем строковый литерал |...| -->
                     <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
                     <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                     <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
@@ -115,7 +150,6 @@
                 <div class="event-card" th:each="event : ${completedOrganizedEvents}">
                     <h3 th:text="${event.title}">Event Title</h3>
                     <p th:text="${event.description}">Event Description</p>
-                    <!-- ИСПРАВЛЕНО: Используем строковый литерал |...| -->
                     <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
                     <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                     <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
@@ -124,6 +158,8 @@
             </div>
             <p th:unless="${completedOrganizedEvents != null and !completedOrganizedEvents.isEmpty()}">No completed events yet.</p>
         </div>
+
+
 
         <a href="/events/create" class="btn-primary" sec:authorize="hasRole('ADMIN') or hasRole('ORGANIZER')">Create New Event</a>
     </div>

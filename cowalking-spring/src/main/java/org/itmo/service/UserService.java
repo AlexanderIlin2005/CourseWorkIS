@@ -5,6 +5,7 @@ import org.itmo.model.Event;
 import org.itmo.model.enums.UserRole;
 import org.itmo.repository.UserRepository;
 import org.itmo.repository.EventRepository; // Импортируем EventRepository
+import org.itmo.repository.ParticipationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +22,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; // <-- Добавьте импорт
 
+import org.itmo.model.enums.ParticipationStatus;
+import org.itmo.model.Participation;
+
+
+
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
@@ -28,6 +34,8 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
 
     private final EventRepository eventRepository; // <-- Внедряем EventRepository
+
+    private final ParticipationRepository participationRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class); // <-- Добавьте логгер
 
@@ -109,5 +117,14 @@ public class UserService implements UserDetailsService {
         // Используем EventRepository для поиска
         // Предположим, в EventRepository есть метод findByOrganizerId
         return eventRepository.findByOrganizerId(userId);
+    }
+
+    // Метод уже есть в ParticipationService, но можно сделать фасад
+    public List<Participation> findPendingApplicationsSentByUser(Long userId) {
+        return participationRepository.findByParticipantIdAndStatus(userId, ParticipationStatus.PENDING);
+    }
+
+    public List<Participation> findPendingApplicationsForOrganizer(Long organizerId) {
+        return participationRepository.findByEventOrganizerIdAndStatus(organizerId, ParticipationStatus.PENDING);
     }
 }
