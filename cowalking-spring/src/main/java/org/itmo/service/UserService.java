@@ -127,4 +127,34 @@ public class UserService implements UserDetailsService {
     public List<Participation> findPendingApplicationsForOrganizer(Long organizerId) {
         return participationRepository.findByEventOrganizerIdAndStatus(organizerId, ParticipationStatus.PENDING);
     }
+
+    // --- НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ (ТОЛЬКО ДЛЯ АДМИНА) ---
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Transactional
+    public void freezeUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void unfreezeUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void changeUserRole(Long userId, UserRole newRole) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(newRole);
+        userRepository.save(user);
+    }
+    // --- КОНЕЦ НОВЫХ МЕТОДОВ ---
 }

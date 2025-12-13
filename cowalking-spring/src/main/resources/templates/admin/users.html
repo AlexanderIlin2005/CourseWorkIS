@@ -1,0 +1,96 @@
+<!-- src/main/resources/templates/admin/users.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - CoWalking</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">CoWalking</a>
+            <ul class="nav-menu">
+                <li><a href="/events/active">Active Events</a></li>
+                <li><a href="/events/completed">Completed Events</a></li>
+                <li><a href="/locations">Locations</a></li>
+                <li sec:authorize="isAuthenticated()">
+                    <a sec:authentication="principal.username" href="/users/profile">Profile</a>
+                </li>
+                <li sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit">Logout</button>
+                    </form>
+                </li>
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/login">Login</a>
+                </li>
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/registration">Register</a>
+                </li>
+                <!-- Ссылка для админа -->
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a href="/admin/users">Manage Users</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <div class="container">
+        <h1>Manage Users</h1>
+        <p>Here you can manage all users of the platform.</p>
+
+        <div class="events-grid">
+            <div class="event-card" th:each="user : ${users}">
+                <h3 th:text="${user.username}">Username</h3>
+                <p><strong>Email:</strong> <span th:text="${user.email}">Email</span></p>
+                <p><strong>Role:</strong> <span th:text="${user.role}">Role</span></p>
+                <p><strong>Status:</strong>
+                    <span th:class="${user.active ? 'text-success' : 'text-danger'}"
+                          th:text="${user.active ? 'Active' : 'Frozen'}">Status</span>
+                </p>
+
+                <!-- Ссылка на публичный профиль -->
+                <a th:href="@{/users/profile/{id}(id=${user.id})}" class="btn-secondary">View Profile</a>
+
+                <!-- Действия для админа -->
+                <div sec:authorize="hasRole('ADMIN')">
+                    <!-- Блокировка/Разблокировка -->
+                    <form th:if="${user.active}" th:action="@{/admin/users/{userId}/freeze(userId=${user.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn-danger">Freeze Account</button>
+                    </form>
+                    <form th:unless="${user.active}" th:action="@{/admin/users/{userId}/unfreeze(userId=${user.id})}" method="post" style="display:inline;">
+                        <button type="submit" class="btn-primary">Unfreeze Account</button>
+                    </form>
+
+                    <!-- Смена роли -->
+                    <form th:action="@{/admin/users/{userId}/role(userId=${user.id})}" method="post" style="display:inline;">
+                        <input type="hidden" name="newRole"
+                               th:value="${user.role == T(org.itmo.model.enums.UserRole).ADMIN ? T(org.itmo.model.enums.UserRole).PARTICIPANT : T(org.itmo.model.enums.UserRole).ADMIN}">
+                        <button type="submit" class="btn-secondary"
+                                th:text="${user.role == T(org.itmo.model.enums.UserRole).ADMIN ? 'Remove Admin' : 'Make Admin'}">
+                            Change Role
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .text-success {
+        color: green;
+        font-weight: bold;
+    }
+    .text-danger {
+        color: red;
+        font-weight: bold;
+    }
+</style>
+</body>
+</html>

@@ -49,6 +49,7 @@ public class SecurityConfig {
                         // --- ДОБАВЛЕНО: разрешаем аутентифицированным пользователям обновлять профиль ---
                         .requestMatchers("/users/update").authenticated() // <-- Только аутентифицированные могут обновлять профиль
                         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+                        .requestMatchers("/admin/**").hasRole("ADMIN") // <-- Только админ может управлять пользователями
                         .anyRequest().authenticated() // Все остальные требуют аутентификации
                 )
                 .formLogin((form) -> form

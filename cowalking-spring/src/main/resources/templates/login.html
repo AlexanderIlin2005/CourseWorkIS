@@ -10,9 +10,16 @@
     <div class="auth-container">
         <h2>Login</h2>
         <form th:action="@{/login}" method="post">
-            <div th:if="${param.error}">
-                <p class="error">Invalid username or password.</p>
+
+            <div th:if="${param.error}" class="error">
+        <span th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'].message == 'User is disabled'}">
+            Your account is frozen. Please contact the administrator.
+        </span>
+                <span th:unless="${session['SPRING_SECURITY_LAST_EXCEPTION'].message == 'User is disabled'}">
+            Invalid username or password.
+        </span>
             </div>
+
             <div th:if="${param.logout}">
                 <p class="success">You have been logged out.</p>
             </div>
