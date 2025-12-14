@@ -5,6 +5,10 @@ import org.itmo.model.Event;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.MappingTarget;
+
+import java.time.Duration;
 
 @Mapper(componentModel = "spring", uses = {UserMapper.class, LocationMapper.class})
 public interface EventMapper {
@@ -29,6 +33,15 @@ public interface EventMapper {
     @Mapping(target = "currentParticipants", ignore = true) // Игнорируем currentParticipants при создании/редактировании через DTO
     Event toEvent(EventDto eventDto);
 
+    // --- ДОБАВЛЕНО: Метод для вычисления продолжительности ---
+    @AfterMapping
+    default void calculateDuration(@MappingTarget EventDto dto, Event event) {
+        if (event.getStartTime() != null && event.getEndTime() != null) {
+            dto.setDurationMinutes(Duration.between(event.getStartTime(), event.getEndTime()).toMinutes());
+        }
+        // Если startTime или endTime null, durationMinutes останется null (по умолчанию)
+    }
+
     // --- ИМЕНОВАННЫЕ МЕТОДЫ для маппинга связей ---
     @Named("mapUserByIdForEvent")
     default org.itmo.model.User mapUserByIdForEvent(Long id) {
@@ -52,4 +65,5 @@ public interface EventMapper {
         return location;
     }
     // --- КОНЕЦ ИМЕНОВАННЫХ МЕТОДОВ ---
+
 }
