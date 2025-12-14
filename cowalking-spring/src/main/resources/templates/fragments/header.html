@@ -1,6 +1,7 @@
 <!-- src/main/resources/templates/fragments/header.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Fragment</title>
@@ -14,29 +15,33 @@
                 <li><a href="/events/active">Active Events</a></li>
                 <li><a href="/events/completed">Completed Events</a></li>
                 <li><a href="/locations">Locations</a></li>
-                <!-- Правильная ссылка на профиль -->
+
+                <!-- Для авторизованных пользователей -->
                 <li sec:authorize="isAuthenticated()">
-                    <a th:href="@{/users/profile}" th:text="${#authentication?.principal?.username}">Profile</a>
+                    <!-- Имя пользователя - ссылка на профиль -->
+                    <a th:href="@{/users/profile}"
+                       sec:authentication="principal.username">Profile</a>
                 </li>
                 <li sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display:inline;">
                         <button type="submit">Logout</button>
                     </form>
                 </li>
+
+                <!-- Для неавторизованных -->
                 <li sec:authorize="!isAuthenticated()">
                     <a href="/login">Login</a>
                 </li>
                 <li sec:authorize="!isAuthenticated()">
                     <a href="/registration">Register</a>
                 </li>
-                <!-- Ссылка для админа -->
+
+                <!-- Только для админа -->
                 <li sec:authorize="hasRole('ADMIN')">
                     <a href="/admin/users">Manage Users</a>
                 </li>
-                <!-- Кнопка создания события для ORGANIZER/ADMIN -->
-                <li sec:authorize="hasAnyRole('ADMIN', 'ORGANIZER')">
-                    <a href="/events/create" class="btn-primary">Create Event</a>
-                </li>
+
+                <!-- Кнопка создания события будет показана НА СТРАНИЦЕ СПИСКА СОБЫТИЙ, а не в хедере -->
             </ul>
         </div>
     </nav>
