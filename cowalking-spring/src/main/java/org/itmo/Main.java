@@ -24,6 +24,8 @@ import jakarta.servlet.DispatcherType; // <-- Для EnumSet
 import java.util.EnumSet; // <-- Для EnumSet
 // --- Конец импорт---
 
+import jakarta.servlet.MultipartConfigElement;
+
 public class Main {
 
     private static final int START_PORT = 8080;
@@ -69,6 +71,18 @@ public class Main {
 
         ServletHolder servletHolder = new ServletHolder(dispatcherServlet);
         context.addServlet(servletHolder, "/"); // Маппим на корень
+
+        // --- ДОБАВЛЕНО: Конфигурация для загрузки файлов ---
+        // Настраиваем максимальный размер файла (10 MB) и максимальный размер запроса (10 MB)
+        MultipartConfigElement multipartConfig = new MultipartConfigElement(
+                null, // location (временная директория по умолчанию)
+                10 * 1024 * 1024, // maxFileSize (10 MB)
+                10 * 1024 * 1024, // maxRequestSize (10 MB)
+                0 // fileSizeThreshold
+        );
+        // Применяем конфигурацию к сервлету DispatcherServlet
+        context.getServletHandler().getServlets()[0].getRegistration().setMultipartConfig(multipartConfig);
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
         server.start();
         server.join();

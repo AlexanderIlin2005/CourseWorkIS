@@ -89,6 +89,8 @@
             <label for="maxDuration">Max Duration (min):</label>
             <input type="number" name="maxDuration" id="maxDuration" th:value="${selectedMaxDuration}">
 
+
+
             <button type="submit" class="btn-secondary">Apply Filter</button>
             <a th:href="@{/events/active}" class="btn-secondary">Reset</a>
         </form>
@@ -101,6 +103,12 @@
         <div class="events-grid">
             <div class="event-card" th:each="event : ${events}"
                  th:if="${#authentication == null or #authentication.principal == null or #authentication.principal.id != event.organizerId or hasRole('ADMIN')}">
+
+                <!-- Отображение фото мероприятия -->
+                <div th:if="${event.photoUrl != null}" style="margin-bottom: 10px;">
+                    <img th:src="@{${event.photoUrl}}" alt="Event Photo" style="max-width: 100%; height: auto; border-radius: 8px;">
+                </div>
+
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p th:text="${event.description}">Event Description</p>
                 <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
@@ -122,7 +130,11 @@
                 </p>
 
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
-                <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
+                <p>
+                    Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a>
+                    <img th:if="${event.organizerPhotoUrl != null}" th:src="@{${event.organizerPhotoUrl}}" alt="Organizer Photo" style="width: 30px; height: 30px; border-radius: 50%; margin-left: 5px; vertical-align: middle;">
+                </p>
+
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
 
 

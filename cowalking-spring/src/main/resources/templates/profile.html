@@ -43,10 +43,45 @@
         <div th:if="${message}" class="success" th:text="${message}">Success message</div>
         <div th:if="${error}" class="error" th:text="${error}">Error message</div>
 
-        <form th:action="@{/users/update}" method="post" th:object="${user}">
+        <!-- СТАЛО -->
+        <form th:action="@{/users/update}" method="post" th:object="${user}" enctype="multipart/form-data">
 
             <!-- Скрытое поле для ID -->
             <input type="hidden" th:field="*{id}" />
+
+            <!-- НА это -->
+            <input type="hidden" id="csrf-token" th:value="${_csrf.token}" />
+            <script>
+                // Перехватываем отправку формы с файлами и добавляем CSRF-токен в заголовок
+                document.querySelector('form[enctype="multipart/form-data"]').addEventListener('submit', function(event) {
+                    const formData = new FormData(this);
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', this.action);
+                    // Добавляем CSRF-токен в заголовок
+                    const csrfToken = document.getElementById('csrf-token').value;
+                    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                    xhr.send(formData);
+                    // Перенаправляем после завершения
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            window.location.href = xhr.responseURL || '/users/profile';
+                        } else {
+                            alert('Error: ' + xhr.status);
+                        }
+                    };
+                    // Отменяем стандартную отправку формы
+                    event.preventDefault();
+                });
+            </script>
+
+            <div class="form-group">
+                <label for="photo">Profile Photo:</label>
+                <input type="file" id="photo" name="photo" accept="image/*">
+                <!-- Отображение текущей фотографии -->
+                <div th:if="${user.photoUrl != null}" style="margin-top: 10px;">
+                    <img th:src="@{${user.photoUrl}}" alt="Profile Photo" style="max-width: 200px; max-height: 200px;">
+                </div>
+            </div>
 
 
             <div class="form-group">

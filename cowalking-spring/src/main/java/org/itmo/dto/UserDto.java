@@ -26,6 +26,10 @@ public class UserDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // --- ДОБАВЛЕНО: URL фотографии профиля ---
+    private String photoUrl;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
     public UserDto() {}
 
     public UserDto(User user) {
@@ -44,5 +48,7 @@ public class UserDto {
         this.active = user.isEnabled(); // Use isEnabled() instead of getActive()
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
+
+        this.photoUrl = user.getPhotoUrl();
     }
 }

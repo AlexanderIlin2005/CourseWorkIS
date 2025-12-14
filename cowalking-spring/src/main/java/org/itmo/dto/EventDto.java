@@ -42,6 +42,12 @@ public class EventDto {
     private Long reviewCount;
     // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
+    // --- ДОБАВЛЕНО: URL фотографии мероприятия ---
+    private String photoUrl;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+    private String organizerPhotoUrl; // <-- Добавить это поле
+
 
     public EventDto() {}
 
@@ -53,6 +59,7 @@ public class EventDto {
         if (event.getOrganizer() != null) {
             this.organizerId = event.getOrganizer().getId();
             this.organizerUsername = event.getOrganizer().getUsername(); // <-- Сохраняем имя
+            this.organizerPhotoUrl = event.getOrganizer().getPhotoUrl(); // <-- Заполнить это поле
         }
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         // --- ИЗМЕНЕНО: сохраняем ID, имя и адрес локации ---
@@ -85,5 +92,7 @@ public class EventDto {
         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
         this.averageRating = event.getAverageRating();
+
+        this.photoUrl = event.getPhotoUrl();
     }
 }

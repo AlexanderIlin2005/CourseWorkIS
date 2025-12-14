@@ -6,6 +6,7 @@ import org.itmo.model.User;
 import org.itmo.model.enums.UserRole;
 import org.itmo.service.UserService;
 import org.itmo.service.EventService; // <-- Импортируем EventService
+import org.itmo.service.FileStorageService;
 import org.itmo.mapper.EventMapper; // <-- Импортируем EventMapper
 import org.itmo.mapper.UserMapper; // <-- Импортируем UserMapper
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory; // <-- Импортируем Logger
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // <-- Импортируем Authentication Token
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.IOException;
 import java.util.List; // <-- Импортируем List
 import java.util.stream.Collectors; // <-- Импортируем Collectors
 
@@ -37,12 +39,18 @@ import org.itmo.repository.EventRepository;
 
 import java.util.ArrayList;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import org.springframework.web.bind.annotation.RequestParam; // <-- Добавьте импорт
+
 @Controller
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper; // <-- Внедряем UserMapper
+
+    private final FileStorageService fileStorageService; // <-- Внедряем сервис
 
     // --- ВНЕДРИМ EventService и EventMapper ---
     @Autowired
@@ -152,8 +160,17 @@ public class UserController {
     }
 
     @PostMapping("/users/update")
-    public String updateProfile(@ModelAttribute UserDto userDto, Model model) {
-        logger.info("Handling POST request for /users/update with DTO: {}", userDto);
+    public String updateProfile(
+            @RequestParam("id") Long id,
+            @RequestParam("email") String email,
+            @RequestParam(value = "phone", required = false) String phone,
+            @RequestParam(value = "bio", required = false) String bio,
+            @RequestParam(value = "telegramId", required = false) String telegramId,
+            @RequestParam(value = "vkId", required = false) String vkId,
+            @RequestParam(value = "photo", required = false) MultipartFile photoFile,
+            Model model) {
+
+        logger.info("Handling POST request for /users/update with parameters: id={}, email={}", id, email);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         logger.debug("Current authentication: {}", auth);
 
@@ -165,92 +182,86 @@ public class UserController {
         logger.info("Current user attempting update: ID={}, Username={}", currentUser.getId(), currentUser.getUsername());
 
         // Check if updating own profile or admin updating
-        if (!currentUser.getId().equals(userDto.getId()) && !currentUser.getRole().equals(UserRole.ADMIN)) {
-            logger.warn("User {} (ID={}) attempted to update profile for user ID {}, access denied.", currentUser.getUsername(), currentUser.getId(), userDto.getId());
+        if (!currentUser.getId().equals(id) && !currentUser.getRole().equals(UserRole.ADMIN)) {
+            logger.warn("User {} (ID={}) attempted to update profile for user ID {}, access denied.", currentUser.getUsername(), currentUser.getId(), id);
             return "redirect:/users/profile";
         }
 
-        // Find the user to update (should be the same as current user or admin)
-        User userToUpdate = userService.findById(userDto.getId())
-                .orElseThrow(() -> {
-                    logger.error("User to update (ID={}) not found in database.", userDto.getId());
-                    return new RuntimeException("User not found");
-                });
-        logger.info("Found user in DB to update: ID={}, Username={}", userToUpdate.getId(), userToUpdate.getUsername());
-
-        // Update allowed fields
-        userToUpdate.setEmail(userDto.getEmail());
-        userToUpdate.setPhone(userDto.getPhone());
-        userToUpdate.setBio(userDto.getBio());
-        // --- ДОБАВЛЕНО: ОБНОВЛЕНИЕ ID СОЦСЕТЕЙ ---
-        userToUpdate.setTelegramId(userDto.getTelegramId());
-        userToUpdate.setVkId(userDto.getVkId());
-        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
-
-        logger.info("Updated fields for user {}: Email={}, Phone={}, Bio={}", userToUpdate.getId(), userToUpdate.getEmail(), userToUpdate.getPhone(), userToUpdate.getBio());
-
         try {
+            // Find the user to update
+            User userToUpdate = userService.findById(id)
+                    .orElseThrow(() -> {
+                        logger.error("User to update (ID={}) not found in database.", id);
+                        return new RuntimeException("User not found");
+                    });
+            logger.info("Found user in DB to update: ID={}, Username={}", userToUpdate.getId(), userToUpdate.getUsername());
+
+            // Update allowed fields
+            userToUpdate.setEmail(email);
+            userToUpdate.setPhone(phone);
+            userToUpdate.setBio(bio);
+            userToUpdate.setTelegramId(telegramId);
+            userToUpdate.setVkId(vkId);
+
+            logger.info("Updated fields for user {}: Email={}, Phone={}, Bio={}", userToUpdate.getId(), userToUpdate.getEmail(), userToUpdate.getPhone(), userToUpdate.getBio());
+
+            // Обработка загрузки фотографии
+            if (photoFile != null && !photoFile.isEmpty()) {
+                try {
+                    String photoPath = fileStorageService.storeFile(photoFile, "user");
+                    // Сохраняем относительный путь для отображения в Thymeleaf
+                    userToUpdate.setPhotoUrl("/" + photoPath);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to store user photo", e);
+                }
+            }
+
             User updatedUser = userService.save(userToUpdate);
             logger.info("User profile updated successfully: ID={}", updatedUser.getId());
 
-            // --- ИСПРАВЛЕНО: Принудительно обновляем Authentication в SecurityContextHolder ---
+            // Обновляем Authentication в SecurityContextHolder
             UserDetails freshUserDetails = userService.loadUserByUsername(updatedUser.getUsername());
             UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
-                    freshUserDetails, // Новый Principal
+                    freshUserDetails,
                     auth.getCredentials(),
                     freshUserDetails.getAuthorities()
             );
             newAuth.setDetails(auth.getDetails());
             SecurityContextHolder.getContext().setAuthentication(newAuth);
-            // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
-            model.addAttribute("message", "Profile updated successfully!");
-            // Refresh the DTO to show updated values
-            UserDto updatedUserDto = userMapper.toUserDto(updatedUser);
-            model.addAttribute("user", updatedUserDto);
+            return "redirect:/users/profile?success=true";
 
-            // --- ПОВТОРНО ПОЛУЧАЕМ И ПЕРЕДАЕМ ОРГАНИЗОВАННЫЕ СОБЫТИЯ ---
-            try {
-                List<org.itmo.model.Event> organizedEvents = userService.findOrganizedEvents(updatedUser.getId());
-                logger.debug("Found {} events organized by user ID={} after update", organizedEvents.size(), updatedUser.getId());
-
-                List<org.itmo.dto.EventDto> organizedEventDtos = organizedEvents.stream()
-                        .map(eventMapper::toEventDto)
-                        .collect(Collectors.toList());
-
-                model.addAttribute("organizedEvents", organizedEventDtos);
-            } catch (Exception e) {
-                logger.error("Error fetching events organized by user ID={} after update", updatedUser.getId(), e);
-                model.addAttribute("organizedEvents", List.of()); // Передаем пустой список в случае ошибки
-            }
-            // --- КОНЕЦ ПОВТОРНОГО ПОЛУЧЕНИЯ ---
-            return "redirect:/users/profile";
         } catch (Exception e) {
-            logger.error("Error updating user profile (ID={}): {}", userDto.getId(), e.getMessage(), e);
+            logger.error("Error updating user profile (ID={}): {}", id, e.getMessage(), e);
             model.addAttribute("error", "Update failed: " + e.getMessage());
-            model.addAttribute("user", userDto); // Pass DTO back to keep values
 
-            // --- ПОЛУЧАЕМ И ПЕРЕДАЕМ ОРГАНИЗОВАННЫЕ СОБЫТИЯ ---
+            // Заполняем DTO для отображения данных в форме в случае ошибки
+            UserDto errorDto = new UserDto();
+            errorDto.setId(id);
+            errorDto.setEmail(email);
+            errorDto.setPhone(phone);
+            errorDto.setBio(bio);
+            errorDto.setTelegramId(telegramId);
+            errorDto.setVkId(vkId);
+            model.addAttribute("user", errorDto);
+
+            // Получаем данные для остальных полей модели
             try {
-                User userForEvents = userService.findById(userDto.getId()).orElse(null);
+                User userForEvents = userService.findById(id).orElse(null);
                 if (userForEvents != null) {
-                    List<org.itmo.model.Event> organizedEvents = userService.findOrganizedEvents(userForEvents.getId());
-                    logger.debug("Found {} events organized by user ID={} for error page", organizedEvents.size(), userForEvents.getId());
-
-                    List<org.itmo.dto.EventDto> organizedEventDtos = organizedEvents.stream()
+                    List<org.itmo.dto.EventDto> organizedEventDtos = userService.findOrganizedEvents(userForEvents.getId()).stream()
                             .map(eventMapper::toEventDto)
                             .collect(Collectors.toList());
-
                     model.addAttribute("organizedEvents", organizedEventDtos);
                 } else {
                     model.addAttribute("organizedEvents", List.of());
                 }
             } catch (Exception e2) {
-                logger.error("Error fetching events organized by user ID={} for error page", userDto.getId(), e2);
+                logger.error("Error fetching events organized by user ID={} for error page", id, e2);
                 model.addAttribute("organizedEvents", List.of());
             }
-            // --- КОНЕЦ ПОЛУЧЕНИЯ ---
-            return "profile"; // Возвращаемся на ту же страницу с ошибкой
+
+            return "profile";
         }
     }
 

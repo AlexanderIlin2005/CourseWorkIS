@@ -13,6 +13,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -32,7 +37,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        // Правильный подход - используем XorCsrfTokenRequestAttributeHandler
+        CsrfTokenRequestAttributeHandler requestHandler = new XorCsrfTokenRequestAttributeHandler();
+
         http
+                .csrf((csrf) -> csrf
+                        .csrfTokenRequestHandler(requestHandler) // Используем обработчик
+                        .ignoringRequestMatchers("/login") // Игнорируем логин (опционально)
+                )
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Разрешаем доступ
                         .requestMatchers("/events", "/events/{id}").permitAll() // Разрешаем просматривать события всем

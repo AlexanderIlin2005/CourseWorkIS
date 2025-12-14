@@ -27,6 +27,9 @@ public interface EventMapper {
     @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
     @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
     // startTime и endTime (LocalDateTime) маппятся автоматически
+    // --- ДОБАВЛЕНО: Маппинг для фото ---
+    @Mapping(source = "photoUrl", target = "photoUrl")
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
     @Mapping(target = "createdAt", ignore = true) // Игнорирование полей, устанавливаемых вручную
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "status", ignore = true) // Игнорируем status при создании/редактировании через DTO

@@ -76,4 +76,9 @@ public class Event {
     @Column(name = "average_rating")
     private Double averageRating; // Средний рейтинг мероприятия
 
+    // --- ДОБАВЛЕНО: URL фотографии мероприятия ---
+    @Column(length = 500)
+    private String photoUrl;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
 }

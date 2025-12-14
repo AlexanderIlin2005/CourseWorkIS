@@ -62,6 +62,11 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    // --- ДОБАВЛЕНО: URL фотографии профиля ---
+    @Column(length = 500)
+    private String photoUrl;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));

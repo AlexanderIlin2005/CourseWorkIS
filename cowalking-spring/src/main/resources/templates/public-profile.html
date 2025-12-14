@@ -39,6 +39,12 @@
 <main>
     <div class="container">
         <h1>Public Profile</h1>
+
+        <!-- Отображение фото профиля -->
+        <div th:if="${user.photoUrl != null}" style="text-align: center; margin-bottom: 20px;">
+            <img th:src="@{${user.photoUrl}}" alt="Profile Photo" style="max-width: 300px; max-height: 300px; border-radius: 50%;">
+        </div>
+
         <div class="profile-details">
             <p><strong>Username:</strong> <span th:text="${user.username}">Username</span></p>
             <p><strong>Email:</strong> <span th:text="${user.email}">Email</span></p>
