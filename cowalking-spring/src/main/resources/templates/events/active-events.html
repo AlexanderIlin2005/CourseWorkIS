@@ -86,7 +86,10 @@
 
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p th:text="${event.description}">Event Description</p>
-                <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
+                <!-- СТАЛО: -->
+                <p><strong>Start Address:</strong> <span th:text="${event.startAddress}">Start Address</span></p>
+                <p th:if="${event.endAddress != null and !event.endAddress.isEmpty()}">
+                    <strong>End Address:</strong> <span th:text="${event.endAddress}">End Address</span></p>
                 <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
                 <!-- В карточке события -->
                 <p>Event Type: <span th:text="${event.eventTypeName ?: 'Not specified'}">Type</span></p>

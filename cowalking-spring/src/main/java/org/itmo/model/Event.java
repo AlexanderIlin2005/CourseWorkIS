@@ -32,9 +32,11 @@ public class Event {
     @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id", nullable = false)
-    private Location location;
+    // --- УДАЛЕНО: Связь с Location ---
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "location_id", nullable = false)
+    // private Location location;
+    // --- КОНЕЦ УДАЛЕНИЯ ---
 
     // --- ИСПОЛЬЗУЕМ LocalDateTime с конвертером ---
     @Convert(converter = LocalDateTimeConverter.class) // <-- Добавляем конвертер
@@ -79,6 +81,14 @@ public class Event {
     // --- ДОБАВЛЕНО: URL фотографии мероприятия ---
     @Column(length = 500)
     private String photoUrl;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+    // --- ДОБАВЛЕНО: Текстовые адреса ---
+    @Column(name = "start_address", length = 500, nullable = false)
+    private String startAddress;
+
+    @Column(name = "end_address", length = 500)
+    private String endAddress;
     // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
 }

@@ -61,14 +61,15 @@
                     <textarea id="description" th:field="*{description}" rows="5"></textarea>
                 </div>
 
+                <!-- СТАЛО: -->
                 <div class="form-group">
-                    <label for="locationId">Location:</label>
-                    <select id="locationId" th:field="*{locationId}" required>
-                        <option value="">Select a location</option>
-                        <option th:each="location : ${locations}"
-                                th:value="${location.id}"
-                                th:text="${location.name}">Location</option>
-                    </select>
+                    <label for="startAddress">Start Address:</label>
+                    <input type="text" id="startAddress" th:field="*{startAddress}" required placeholder="Enter start address">
+                </div>
+
+                <div class="form-group">
+                    <label for="endAddress">End Address (Optional):</label>
+                    <input type="text" id="endAddress" th:field="*{endAddress}" placeholder="Enter end address">
                 </div>
 
                 <div class="form-group">

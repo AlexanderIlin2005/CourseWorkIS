@@ -10,23 +10,28 @@ import org.mapstruct.MappingTarget;
 
 import java.time.Duration;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, LocationMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface EventMapper {
 
     @Mapping(source = "organizer.id", target = "organizerId")
     @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппинг имени организатора
     @Mapping(source = "organizer.photoUrl", target = "organizerPhotoUrl") // <-- ДОБАВЛЕНО
-    @Mapping(source = "location.id", target = "locationId")
-    @Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации
-    @Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации
+    //@Mapping(source = "location.id", target = "locationId")
+    //@Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации
+    //@Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации
     // startTime и endTime (LocalDateTime) маппятся автоматически
     // --- ДОБАВЛЕНО: Маппинг для EventType ---
     @Mapping(source = "eventType.id", target = "eventTypeId")
     @Mapping(source = "eventType.name", target = "eventTypeName")
+    // --- ДОБАВИТЬ маппинг для адресов ---
+    @Mapping(source = "startAddress", target = "startAddress")
+    @Mapping(source = "endAddress", target = "endAddress")
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
     EventDto toEventDto(Event event);
 
+
     @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
-    @Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
+    //@Mapping(source = "locationId", target = "location", qualifiedByName = "mapLocationByIdForEvent")
     // startTime и endTime (LocalDateTime) маппятся автоматически
     // --- ДОБАВЛЕНО: Маппинг для фото ---
     @Mapping(source = "photoUrl", target = "photoUrl")
@@ -58,16 +63,16 @@ public interface EventMapper {
         return user;
     }
 
-    @Named("mapLocationByIdForEvent")
-    default org.itmo.model.Location mapLocationByIdForEvent(Long id) {
-        if (id == null) {
-            return null;
-        }
-        org.itmo.model.Location location = new org.itmo.model.Location();
-        location.setId(id);
-        // В реальности здесь должен быть вызов сервиса для получения полного объекта
-        return location;
-    }
+    //@Named("mapLocationByIdForEvent")
+    //default org.itmo.model.Location mapLocationByIdForEvent(Long id) {
+    //    if (id == null) {
+    //        return null;
+    //    }
+    //    org.itmo.model.Location location = new org.itmo.model.Location();
+    //    location.setId(id);
+    //    // В реальности здесь должен быть вызов сервиса для получения полного объекта
+    //    return location;
+    //}
     // --- КОНЕЦ ИМЕНОВАННЫХ МЕТОДОВ ---
 
 }

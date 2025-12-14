@@ -9,17 +9,15 @@ import org.itmo.model.EventType;
 import org.itmo.model.Review;
 import org.itmo.dto.ReviewDto;
 import org.itmo.service.EventService;
-import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
 import org.itmo.service.FileStorageService;
 import org.itmo.mapper.EventMapper;
 import org.itmo.repository.EventTypeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication; // <-- ДОБАВЬТЕ ЭТОТ ИМПОРТ
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
 
 import org.itmo.model.enums.EventDifficulty;
 
@@ -30,10 +28,9 @@ import java.util.stream.Collectors;
 
 import java.util.List;
 
-import org.itmo.service.ReviewService; // <-- Импортируем ReviewService
+import org.itmo.service.ReviewService;
 
 import org.springframework.web.multipart.MultipartFile;
-import org.itmo.model.Location;
 
 @Controller
 @RequestMapping("/events")
@@ -41,12 +38,11 @@ import org.itmo.model.Location;
 public class EventController {
 
     private final EventService eventService;
-    private final LocationService locationService;
-    private final UserService userService; // <-- УЖЕ ЕСТЬ
+    private final UserService userService;
     private final EventMapper eventMapper;
-    private final EventTypeRepository eventTypeRepository; // <-- Внедряем репозиторий типов
-    private final ReviewService reviewService; // <-- Внедряем ReviewService
-    private final FileStorageService fileStorageService; // <-- Внедряем сервис
+    private final EventTypeRepository eventTypeRepository;
+    private final ReviewService reviewService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     public String listEvents(Model model) {
@@ -101,17 +97,15 @@ public class EventController {
     }
 
     @GetMapping("/create")
-    public String createEventForm(Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+    public String createEventForm(Model model, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }
         User currentUser = (User) authentication.getPrincipal();
 
         model.addAttribute("event", new EventDto());
-        model.addAttribute("locations", locationService.findAll());
-
-        model.addAttribute("eventTypes", eventTypeRepository.findAll()); // <-- Передаем типы в форму создания
-        model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values())); // <-- Передаем сложности
+        model.addAttribute("eventTypes", eventTypeRepository.findAll());
+        model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values()));
 
         return "events/create";
     }
@@ -120,11 +114,12 @@ public class EventController {
     public String createEvent(
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("locationId") Long locationId,
             @RequestParam("eventTypeId") Long eventTypeId,
             @RequestParam("difficulty") EventDifficulty difficulty,
             @RequestParam("startTime") LocalDateTime startTime,
             @RequestParam("endTime") LocalDateTime endTime,
+            @RequestParam("startAddress") String startAddress,
+            @RequestParam("endAddress") String endAddress,
             @RequestParam(value = "maxParticipants", required = false) Integer maxParticipants,
             @RequestParam(value = "photo", required = false) MultipartFile photoFile,
             Model model, Authentication authentication) {
@@ -144,6 +139,8 @@ public class EventController {
             event.setMaxParticipants(maxParticipants);
             event.setDifficulty(difficulty);
             event.setOrganizer(currentUser);
+            event.setStartAddress(startAddress);
+            event.setEndAddress(endAddress);
 
             // Обработка загрузки фотографии
             if (photoFile != null && !photoFile.isEmpty()) {
@@ -154,11 +151,6 @@ public class EventController {
                     throw new RuntimeException("Failed to store event photo", e);
                 }
             }
-
-            // Установка связи с Location (ИСПРАВЛЕНО)
-            Location location = locationService.findById(locationId)
-                    .orElseThrow(() -> new RuntimeException("Location not found with id: " + locationId));
-            event.setLocation(location);
 
             // Установка связи с EventType
             EventType eventType = eventTypeRepository.findById(eventTypeId)
@@ -176,24 +168,23 @@ public class EventController {
             EventDto errorDto = new EventDto();
             errorDto.setTitle(title);
             errorDto.setDescription(description);
-            errorDto.setLocationId(locationId);
             errorDto.setEventTypeId(eventTypeId);
             errorDto.setDifficulty(difficulty);
             errorDto.setStartTime(startTime);
             errorDto.setEndTime(endTime);
+            errorDto.setStartAddress(startAddress);
+            errorDto.setEndAddress(endAddress);
             errorDto.setMaxParticipants(maxParticipants);
 
             model.addAttribute("event", errorDto);
-            model.addAttribute("locations", locationService.findAll());
             model.addAttribute("eventTypes", eventTypeRepository.findAll());
             model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values()));
             return "events/create";
         }
     }
 
-
     @GetMapping("/{id}")
-    public String eventDetails(@PathVariable Long id, Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+    public String eventDetails(@PathVariable Long id, Model model, Authentication authentication) {
         Event event = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         EventDto eventDto = eventMapper.toEventDto(event);
@@ -218,7 +209,7 @@ public class EventController {
     }
 
     @GetMapping("/{id}/edit")
-    public String editEventForm(@PathVariable Long id, Model model, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+    public String editEventForm(@PathVariable Long id, Model model, Authentication authentication) {
         Event event = eventService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
@@ -234,8 +225,6 @@ public class EventController {
 
         EventDto eventDto = eventMapper.toEventDto(event);
         model.addAttribute("event", eventDto);
-        model.addAttribute("locations", locationService.findAll());
-
         model.addAttribute("eventTypes", eventTypeRepository.findAll());
         model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values()));
 
@@ -247,11 +236,12 @@ public class EventController {
             @PathVariable Long id,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("locationId") Long locationId,
             @RequestParam("eventTypeId") Long eventTypeId,
             @RequestParam("difficulty") EventDifficulty difficulty,
             @RequestParam("startTime") LocalDateTime startTime,
             @RequestParam("endTime") LocalDateTime endTime,
+            @RequestParam("startAddress") String startAddress,
+            @RequestParam("endAddress") String endAddress,
             @RequestParam(value = "maxParticipants", required = false) Integer maxParticipants,
             @RequestParam(value = "photo", required = false) MultipartFile photoFile,
             Model model, Authentication authentication) {
@@ -280,6 +270,8 @@ public class EventController {
             event.setEndTime(endTime);
             event.setMaxParticipants(maxParticipants);
             event.setOrganizer(existingEvent.getOrganizer());
+            event.setStartAddress(startAddress);
+            event.setEndAddress(endAddress);
 
             // Обработка загрузки фотографии
             if (photoFile != null && !photoFile.isEmpty()) {
@@ -294,11 +286,7 @@ public class EventController {
                 event.setPhotoUrl(existingEvent.getPhotoUrl());
             }
 
-            // Установка связей (ИСПРАВЛЕНО)
-            Location location = locationService.findById(locationId)
-                    .orElseThrow(() -> new RuntimeException("Location not found with id: " + locationId));
-            event.setLocation(location);
-
+            // Установка связи с EventType
             EventType eventType = eventTypeRepository.findById(eventTypeId)
                     .orElseThrow(() -> new RuntimeException("Event type not found with id: " + eventTypeId));
             event.setEventType(eventType);
@@ -314,16 +302,16 @@ public class EventController {
             errorDto.setId(id);
             errorDto.setTitle(title);
             errorDto.setDescription(description);
-            errorDto.setLocationId(locationId);
             errorDto.setEventTypeId(eventTypeId);
             errorDto.setDifficulty(difficulty);
             errorDto.setStartTime(startTime);
             errorDto.setEndTime(endTime);
+            errorDto.setStartAddress(startAddress);
+            errorDto.setEndAddress(endAddress);
             errorDto.setMaxParticipants(maxParticipants);
             errorDto.setPhotoUrl(existingEvent.getPhotoUrl());
 
             model.addAttribute("event", errorDto);
-            model.addAttribute("locations", locationService.findAll());
             model.addAttribute("eventTypes", eventTypeRepository.findAll());
             model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values()));
             return "events/edit";
@@ -331,7 +319,7 @@ public class EventController {
     }
 
     @PostMapping("/{id}/delete")
-    public String deleteEvent(@PathVariable Long id, Authentication authentication) { // <-- ДОБАВЬТЕ ПАРАМЕТР
+    public String deleteEvent(@PathVariable Long id, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
             return "redirect:/login";
         }

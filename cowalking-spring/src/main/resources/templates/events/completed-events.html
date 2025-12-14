@@ -28,7 +28,10 @@
 
 
                 <p th:text="${event.description}">Event Description</p>
-                <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
+                <!-- СТАЛО: -->
+                <p><strong>Start Address:</strong> <span th:text="${event.startAddress}">Start Address</span></p>
+                <p th:if="${event.endAddress != null and !event.endAddress.isEmpty()}">
+                    <strong>End Address:</strong> <span th:text="${event.endAddress}">End Address</span></p>
                 <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                 <p>

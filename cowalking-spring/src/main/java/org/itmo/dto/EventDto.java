@@ -17,9 +17,9 @@ public class EventDto {
     private String description;
     private Long organizerId;
     private String organizerUsername; // <-- Добавим поле для имени организатора
-    private Long locationId;
-    private String locationName; // <-- Добавим поле для имени локации
-    private String locationAddress; // <-- Добавим поле для адреса локации
+    //private Long locationId;
+    //private String locationName; // <-- Добавим поле для имени локации
+    //private String locationAddress; // <-- Добавим поле для адреса локации
     // --- ИСПРАВЛЕНО: используем LocalDateTime для startTime и endTime ---
     private LocalDateTime startTime; // <-- Теперь LocalDateTime
     private LocalDateTime endTime;   // <-- Теперь LocalDateTime
@@ -48,6 +48,11 @@ public class EventDto {
 
     private String organizerPhotoUrl; // <-- Добавить это поле
 
+    // --- ДОБАВЛЕНО: Текстовые адреса ---
+    private String startAddress;
+    private String endAddress;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
 
     public EventDto() {}
 
@@ -63,11 +68,11 @@ public class EventDto {
         }
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         // --- ИЗМЕНЕНО: сохраняем ID, имя и адрес локации ---
-        if (event.getLocation() != null) {
-            this.locationId = event.getLocation().getId();
-            this.locationName = event.getLocation().getName(); // <-- Сохраняем имя
-            this.locationAddress = event.getLocation().getAddress(); // <-- Сохраняем адрес
-        }
+        //if (event.getLocation() != null) {
+        //    this.locationId = event.getLocation().getId();
+        //    this.locationName = event.getLocation().getName(); // <-- Сохраняем имя
+        //    this.locationAddress = event.getLocation().getAddress(); // <-- Сохраняем адрес
+        //}
         // --- КОНЕЦ ИЗМЕНЕНИЯ ---
         // --- ИЗМЕНЕНО: сохраняем LocalDateTime ---
         this.startTime = event.getStartTime(); // <-- Теперь LocalDateTime
@@ -94,5 +99,10 @@ public class EventDto {
         this.averageRating = event.getAverageRating();
 
         this.photoUrl = event.getPhotoUrl();
+
+        // --- ДОБАВЛЕНО: Маппинг адресов ---
+        this.startAddress = event.getStartAddress();
+        this.endAddress = event.getEndAddress();
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
     }
 }
