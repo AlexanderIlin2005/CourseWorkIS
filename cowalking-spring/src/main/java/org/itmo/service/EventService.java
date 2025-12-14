@@ -20,6 +20,14 @@ import java.util.stream.Collectors; // <-- Импортируем Collectors
 
 import org.itmo.util.MoscowTimeUtil; // Импортируем утилиту
 
+import org.itmo.model.Event;
+import org.itmo.model.enums.EventDifficulty;
+
+//import org.springframework.data.domain.Specification;
+//import jakarta.persistence.criteria.Join;
+//import jakarta.persistence.criteria.Predicate;
+
+
 @Service
 @RequiredArgsConstructor
 public class EventService {
@@ -152,6 +160,47 @@ public class EventService {
             eventRepository.save(event); // Сохраняем обновление статуса
         }
     }
+
+
+    // --- ЗАМЕНИТЬ МЕТОД findActiveEventsFiltered ---
+    /**
+     * Находит активные события с фильтрацией по типу, сложности и продолжительности.
+     * Фильтрация происходит на стороне Java после получения всех активных событий.
+     */
+    public List<Event> findActiveEventsFiltered(
+            Long eventTypeId,
+            EventDifficulty difficulty,
+            Integer minDurationMinutes,
+            Integer maxDurationMinutes) {
+
+        // Сначала получаем все активные события (с обновлением статуса)
+        List<Event> activeEvents = this.findActiveEvents();
+
+        return activeEvents.stream()
+                .filter(event -> {
+                    // Фильтр по типу события
+                    boolean typeOk = (eventTypeId == null) ||
+                            (event.getEventType() != null && eventTypeId.equals(event.getEventType().getId()));
+                    // Фильтр по сложности
+                    boolean difficultyOk = (difficulty == null) || difficulty.equals(event.getDifficulty());
+                    return typeOk && difficultyOk;
+                })
+                .filter(event -> {
+                    // Фильтр по продолжительности
+                    if (minDurationMinutes == null && maxDurationMinutes == null) {
+                        return true; // Нет фильтра по длительности
+                    }
+                    if (event.getStartTime() == null || event.getEndTime() == null) {
+                        return false; // Событие без времени не подходит
+                    }
+                    long durationMinutes = java.time.Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
+                    boolean minOk = (minDurationMinutes == null) || (durationMinutes >= minDurationMinutes);
+                    boolean maxOk = (maxDurationMinutes == null) || (durationMinutes <= maxDurationMinutes);
+                    return minOk && maxOk;
+                })
+                .collect(Collectors.toList());
+    }
+    // --- КОНЕЦ ЗАМЕНЫ ---
 
 
 }

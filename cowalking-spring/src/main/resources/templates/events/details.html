@@ -42,6 +42,13 @@
             <p><strong>Location:</strong> <span th:text="${event.locationName} + ' (' + ${event.locationAddress} + ')'">Location</span></p>
             <p><strong>Start Time:</strong> <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
             <p><strong>End Time:</strong> <span th:text="${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}">End Time</span></p>
+
+            <!-- В карточке события -->
+            <p>Event Type: <span th:text="${event.eventTypeName ?: 'Not specified'}">Type</span></p>
+            <p>Difficulty: <span th:text="${event.difficulty != null ? event.difficulty.displayName : 'Not specified'}">Difficulty</span></p>
+            <!-- Продолжительность можно вычислить в DTO или шаблоне, но лучше в DTO -->
+            <p>Duration: <span th:text="${event.durationMinutes + ' min' ?: 'Not specified'}">Duration</span></p>
+
             <p><strong>Participants:</strong> <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
             <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
         </div>

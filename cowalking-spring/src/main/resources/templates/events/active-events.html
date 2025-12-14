@@ -51,11 +51,44 @@
                 <option value="startTime" th:selected="${sort == 'startTime'}">Start Time</option>
                 <option value="endTime" th:selected="${sort == 'endTime'}">End Time</option>
             </select>
+
             <label for="direction">Direction:</label>
             <select name="direction" id="direction">
                 <option value="asc" th:selected="${direction == 'asc'}">Ascending</option>
                 <option value="desc" th:selected="${direction == 'desc'}">Descending</option>
             </select>
+
+            <!-- Тип события -->
+            <label for="eventTypeId">Event Type:</label>
+            <select name="eventTypeId" id="eventTypeId">
+                <option value="">All Types</option>
+                <option th:each="type : ${eventTypes}"
+                        th:value="${type.id}"
+                        th:text="${type.name}"
+                        th:selected="${selectedEventTypeId != null and selectedEventTypeId == type.id}">
+                    Type
+                </option>
+            </select>
+
+            <!-- Сложность -->
+            <label for="difficulty">Difficulty:</label>
+            <select name="difficulty" id="difficulty">
+                <option value="">All Difficulties</option>
+                <option th:each="diff : ${T(org.itmo.model.enums.EventDifficulty).values()}"
+                        th:value="${diff}"
+                        th:text="${diff.displayName}"
+                        th:selected="${selectedDifficulty != null and selectedDifficulty == diff}">
+                    Difficulty
+                </option>
+            </select>
+
+            <!-- Продолжительность -->
+            <label for="minDuration">Min Duration (min):</label>
+            <input type="number" name="minDuration" id="minDuration" th:value="${selectedMinDuration}">
+
+            <label for="maxDuration">Max Duration (min):</label>
+            <input type="number" name="maxDuration" id="maxDuration" th:value="${selectedMaxDuration}">
+
             <button type="submit" class="btn-secondary">Apply Filter</button>
             <a th:href="@{/events/active}" class="btn-secondary">Reset</a>
         </form>
@@ -72,6 +105,12 @@
                 <p th:text="${event.description}">Event Description</p>
                 <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
                 <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
+                <!-- В карточке события -->
+                <p>Event Type: <span th:text="${event.eventTypeName ?: 'Not specified'}">Type</span></p>
+                <p>Difficulty: <span th:text="${event.difficulty != null ? event.difficulty.displayName : 'Not specified'}">Difficulty</span></p>
+                <!-- Продолжительность можно вычислить в DTO или шаблоне, но лучше в DTO -->
+                <p>Duration: <span th:text="${event.durationMinutes + ' min' ?: 'Not specified'}">Duration</span></p>
+
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                 <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>

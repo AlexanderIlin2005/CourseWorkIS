@@ -7,6 +7,9 @@ import org.itmo.model.enums.UserRole;
 import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
 import org.itmo.repository.LocationRepository; // <-- Импортируем Repository
+import org.itmo.repository.EventTypeRepository;
+import org.itmo.model.EventType; // <-- Добавлен импорт
+
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,7 @@ public class DataInitializer {
     private final UserService userService;
     private final LocationService locationService;
     private final LocationRepository locationRepository; // <-- Внедряем Repository
+    private final EventTypeRepository eventTypeRepository; // <-- Внедряем репозиторий типов
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
@@ -36,6 +40,8 @@ public class DataInitializer {
 
         // Инициализация пользователя admin
         initializeAdminUser();
+
+        initializeEventTypes(); // <-- Вызываем инициализацию типов
     }
 
     private void initializeLocations() {
@@ -91,6 +97,23 @@ public class DataInitializer {
             userService.save(existingAdmin);
             logger.info("Default admin user updated.");
             // --- КОНЕЦ ОБНОВЛЕНИЯ ---
+        }
+    }
+
+    private void initializeEventTypes() {
+        if (eventTypeRepository.count() == 0) {
+            logger.info("No event types found. Creating default event types.");
+            List<EventType> defaultTypes = Arrays.asList(
+                    new EventType("Пешая прогулка", "Неспешные прогулки по городу"),
+                    new EventType("Бег", "Беговые тренировки в парках"),
+                    new EventType("Скандинавская ходьба", "Прогулки со специальными палками"),
+                    new EventType("Велопрогулка", "Веломаршруты по городу и паркам"),
+                    new EventType("Прогулка на роликах", "Роликовые маршруты для активного отдыха")
+            );
+            eventTypeRepository.saveAll(defaultTypes);
+            logger.info("Default event types created successfully.");
+        } else {
+            logger.info("Event types already exist, skipping creation.");
         }
     }
 

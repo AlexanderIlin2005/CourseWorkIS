@@ -5,18 +5,25 @@ import org.itmo.dto.EventDto;
 import org.itmo.model.Event;
 import org.itmo.model.User;
 import org.itmo.model.enums.EventStatus;
+import org.itmo.model.EventType;
 import org.itmo.service.EventService;
 import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
 import org.itmo.mapper.EventMapper;
+import org.itmo.repository.EventTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication; // <-- ДОБАВЬТЕ ЭТОТ ИМПОРТ
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.ui.Model;
+
+import org.itmo.model.enums.EventDifficulty;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/events")
@@ -27,23 +34,38 @@ public class EventController {
     private final LocationService locationService;
     private final UserService userService; // <-- УЖЕ ЕСТЬ
     private final EventMapper eventMapper;
+    private final EventTypeRepository eventTypeRepository; // <-- Внедряем репозиторий типов
 
-    // Основной список событий теперь перенаправляет на активные
     @GetMapping
     public String listEvents(Model model) {
-        return listActiveEvents(model);
+        return listActiveEvents(model, null, null, null, null);
     }
 
-    // Новый метод для активных событий
+    // --- ЕДИНСТВЕННЫЙ МЕТОД ДЛЯ /active ---
     @GetMapping("/active")
-    public String listActiveEvents(Model model) {
-        List<Event> activeEvents = eventService.findActiveEvents();
+    public String listActiveEvents(
+            Model model,
+            @RequestParam(required = false) Long eventTypeId,
+            @RequestParam(required = false) EventDifficulty difficulty,
+            @RequestParam(required = false) Integer minDuration,
+            @RequestParam(required = false) Integer maxDuration) {
+
+        List<Event> activeEvents = eventService.findActiveEventsFiltered(
+                eventTypeId, difficulty, minDuration, maxDuration);
+
         List<EventDto> eventDtos = activeEvents.stream()
                 .map(eventMapper::toEventDto)
                 .collect(Collectors.toList());
+
+        model.addAttribute("eventTypes", eventTypeRepository.findAll());
+        model.addAttribute("selectedEventTypeId", eventTypeId);
+        model.addAttribute("selectedDifficulty", difficulty);
+        model.addAttribute("selectedMinDuration", minDuration);
+        model.addAttribute("selectedMaxDuration", maxDuration);
         model.addAttribute("events", eventDtos);
         return "events/active-events";
     }
+    // --- КОНЕЦ ЕДИНСТВЕННОГО МЕТОДА ---
 
     // Новый метод для завершённых событий
     @GetMapping("/completed")
@@ -65,6 +87,10 @@ public class EventController {
 
         model.addAttribute("event", new EventDto());
         model.addAttribute("locations", locationService.findAll());
+
+        model.addAttribute("eventTypes", eventTypeRepository.findAll()); // <-- Передаем типы в форму создания
+        model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values())); // <-- Передаем сложности
+
         return "events/create";
     }
 
@@ -75,12 +101,27 @@ public class EventController {
         }
         User currentUser = (User) authentication.getPrincipal();
 
+        // --- ИСПРАВЛЕНО: Создаем переменную event ---
         Event event = eventMapper.toEvent(eventDto);
+        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+
         if (event.getId() == null) {
             event.setOrganizer(currentUser);
         }
 
+
         try {
+
+            // --- ИСПРАВЛЕНО: Добавление типа и сложности ---
+            if (eventDto.getEventTypeId() != null) {
+                EventType eventType = eventTypeRepository.findById(eventDto.getEventTypeId())
+                        .orElseThrow(() -> new RuntimeException("Event type not found"));
+                event.setEventType(eventType);
+            }
+            event.setDifficulty(eventDto.getDifficulty());
+            // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
             Event savedEvent = eventService.save(event, currentUser);
             return "redirect:/events/" + savedEvent.getId();
         } catch (Exception e) {
@@ -127,6 +168,10 @@ public class EventController {
         EventDto eventDto = eventMapper.toEventDto(event);
         model.addAttribute("event", eventDto);
         model.addAttribute("locations", locationService.findAll());
+
+        model.addAttribute("eventTypes", eventTypeRepository.findAll());
+        model.addAttribute("difficulties", Arrays.asList(EventDifficulty.values()));
+
         return "events/edit";
     }
 
@@ -145,11 +190,23 @@ public class EventController {
             return "redirect:/events/" + id;
         }
 
+
+
         Event event = eventMapper.toEvent(eventDto);
         event.setId(id);
         event.setOrganizer(existingEvent.getOrganizer());
 
         try {
+
+            // --- ИСПРАВЛЕНО: Добавление типа и сложности ---
+            if (eventDto.getEventTypeId() != null) {
+                EventType eventType = eventTypeRepository.findById(eventDto.getEventTypeId())
+                        .orElseThrow(() -> new RuntimeException("Event type not found"));
+                event.setEventType(eventType);
+            }
+            event.setDifficulty(eventDto.getDifficulty());
+            // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
             Event updatedEvent = eventService.save(event, currentUser);
             return "redirect:/events/" + updatedEvent.getId();
         } catch (Exception e) {

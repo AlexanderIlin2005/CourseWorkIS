@@ -56,6 +56,28 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="eventTypeId">Event Type:</label>
+                    <select id="eventTypeId" th:field="*{eventTypeId}" required>
+                        <option value="">Select a type</option>
+                        <option th:each="type : ${eventTypes}"
+                                th:value="${type.id}"
+                                th:text="${type.name}"
+                                th:selected="${type.id == event.eventTypeId}">Type</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Difficulty:</label>
+                    <select id="difficulty" th:field="*{difficulty}" required>
+                        <option value="">Select difficulty</option>
+                        <option th:each="diff : ${difficulties}"
+                                th:value="${diff}"
+                                th:text="${diff.displayName}"
+                                th:selected="${diff == event.difficulty}">Difficulty</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="startTime">Start Time:</label>
                     <input type="datetime-local" id="startTime" th:field="*{startTime}">
                 </div>

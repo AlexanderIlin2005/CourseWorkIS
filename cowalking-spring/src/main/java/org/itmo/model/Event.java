@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime; // Используем LocalDateTime
 
+import org.itmo.model.enums.EventDifficulty; // <-- Добавлен импорт
+
 @Entity
 @Table(name = "cowalking_events")
 @Getter
@@ -62,4 +64,13 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.ACTIVE; // <-- Используем внешний enum
     // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_type_id")
+    private EventType eventType; // <-- Добавлено
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "difficulty")
+    private EventDifficulty difficulty; // <-- Добавлено
+
 }

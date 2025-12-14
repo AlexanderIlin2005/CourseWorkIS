@@ -7,6 +7,9 @@ import lombok.Data;
 import java.time.LocalDateTime; // Используем LocalDateTime
 import java.time.format.DateTimeFormatter;
 
+import org.itmo.model.enums.EventDifficulty; // <-- Добавлен импорт
+
+
 @Data
 public class EventDto {
     private Long id;
@@ -24,6 +27,14 @@ public class EventDto {
     private Integer maxParticipants;
     private Integer currentParticipants;
     private EventStatus status;
+
+    private Long eventTypeId; // <-- Добавлено
+    private String eventTypeName; // <-- Добавлено для отображения
+    private EventDifficulty difficulty; // <-- Добавлено
+
+    // --- ДОБАВЛЕНО: Продолжительность в минутах ---
+    private Long durationMinutes;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
     public EventDto() {}
 
@@ -51,5 +62,19 @@ public class EventDto {
         this.maxParticipants = event.getMaxParticipants();
         this.currentParticipants = event.getCurrentParticipants();
         this.status = event.getStatus(); // Теперь использует внешний enum
+
+        // --- ДОБАВЛЕНО: Маппинг типа и сложности ---
+        if (event.getEventType() != null) {
+            this.eventTypeId = event.getEventType().getId();
+            this.eventTypeName = event.getEventType().getName();
+        }
+        this.difficulty = event.getDifficulty();
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+        // --- ДОБАВЛЕНО: Расчет продолжительности ---
+        if (event.getStartTime() != null && event.getEndTime() != null) {
+            this.durationMinutes = java.time.Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
+        }
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
     }
 }
