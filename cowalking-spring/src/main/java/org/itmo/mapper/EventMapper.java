@@ -15,6 +15,7 @@ public interface EventMapper {
 
     @Mapping(source = "organizer.id", target = "organizerId")
     @Mapping(source = "organizer.username", target = "organizerUsername") // <-- Маппинг имени организатора
+    @Mapping(source = "organizer.photoUrl", target = "organizerPhotoUrl") // <-- ДОБАВЛЕНО
     @Mapping(source = "location.id", target = "locationId")
     @Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации
     @Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации

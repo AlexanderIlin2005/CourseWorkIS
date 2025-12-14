@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Разрешаем доступ
                         .requestMatchers("/events", "/events/{id}").permitAll() // Разрешаем просматривать события всем
-                        .requestMatchers("/events/completed", "events/active").permitAll() // Разрешаем просмотр завершённых всем
+                        .requestMatchers("/events/completed", "/events/active").permitAll() // Разрешаем просмотр завершённых всем
                         // --- ИСПРАВЛЕНО: разрешаем аутентифицированным пользователям создавать события ---
                         .requestMatchers("/events/create").authenticated() // <-- Только аутентифицированные могут создавать
                         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
@@ -61,6 +61,9 @@ public class SecurityConfig {
                         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
                         // --- ДОБАВЛЕНО: разрешаем аутентифицированным пользователям обновлять профиль ---
                         .requestMatchers("/users/update").authenticated() // <-- Только аутентифицированные могут обновлять профиль
+                        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+                        // --- ДОБАВЛЕНО: Разрешить доступ к публичному профилю ---
+                        .requestMatchers("/users/profile/{id}").permitAll()
                         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
                         .requestMatchers("/admin/**").hasRole("ADMIN") // <-- Только админ может управлять пользователями
                         .anyRequest().authenticated() // Все остальные требуют аутентификации
