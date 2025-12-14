@@ -36,6 +36,13 @@ public class EventDto {
     private Long durationMinutes;
     // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
+    private Double averageRating;
+
+    // --- ДОБАВЛЕНО: Количество отзывов ---
+    private Long reviewCount;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+
     public EventDto() {}
 
     public EventDto(Event event) {
@@ -76,5 +83,7 @@ public class EventDto {
             this.durationMinutes = java.time.Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
         }
         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+        this.averageRating = event.getAverageRating();
     }
 }

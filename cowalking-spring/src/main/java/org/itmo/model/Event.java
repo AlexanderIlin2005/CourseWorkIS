@@ -73,4 +73,7 @@ public class Event {
     @Column(name = "difficulty")
     private EventDifficulty difficulty; // <-- Добавлено
 
+    @Column(name = "average_rating")
+    private Double averageRating; // Средний рейтинг мероприятия
+
 }

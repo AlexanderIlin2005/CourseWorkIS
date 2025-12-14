@@ -6,6 +6,8 @@ import org.itmo.model.Event;
 import org.itmo.model.User;
 import org.itmo.model.enums.EventStatus;
 import org.itmo.model.EventType;
+import org.itmo.model.Review;
+import org.itmo.dto.ReviewDto;
 import org.itmo.service.EventService;
 import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 
 import java.util.List;
 
+import org.itmo.service.ReviewService; // <-- Импортируем ReviewService
+
 @Controller
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -35,6 +39,7 @@ public class EventController {
     private final UserService userService; // <-- УЖЕ ЕСТЬ
     private final EventMapper eventMapper;
     private final EventTypeRepository eventTypeRepository; // <-- Внедряем репозиторий типов
+    private final ReviewService reviewService; // <-- Внедряем ReviewService
 
     @GetMapping
     public String listEvents(Model model) {
@@ -138,6 +143,13 @@ public class EventController {
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         EventDto eventDto = eventMapper.toEventDto(event);
         model.addAttribute("event", eventDto);
+
+        // Загружаем отзывы для события
+        List<Review> reviews = reviewService.getReviewsForEvent(id);
+        model.addAttribute("reviews", reviews);
+
+        // Загружаем DTO для формы отзыва
+        model.addAttribute("reviewDto", new ReviewDto());
 
         // Добавляем ID текущего пользователя, если он аутентифицирован
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof User) {
