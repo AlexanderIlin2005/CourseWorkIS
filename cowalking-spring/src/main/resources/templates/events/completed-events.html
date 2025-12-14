@@ -42,11 +42,27 @@
         <div class="events-grid">
             <div class="event-card" th:each="event : ${events}">
                 <h3 th:text="${event.title}">Event Title</h3>
+
+                <!-- Отображение фото мероприятия (без условия авторизации) -->
+                <div th:if="${event.photoUrl != null}" style="margin-bottom: 10px;">
+                    <img th:src="@{${event.photoUrl}}" alt="Event Photo" style="max-width: 100%; height: auto; border-radius: 8px;">
+                </div>
+                <div th:unless="${event.photoUrl != null}" style="margin-bottom: 10px; text-align: center; color: #888;">
+                    <p>Event photo</p>
+                </div>
+
+
                 <p th:text="${event.description}">Event Description</p>
                 <p>Location: <span th:text="${event.locationName}">Location Name</span></p>
                 <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
-                <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
+                <p>
+                    Organizer:
+                    <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a>
+                    <!-- Отображение фото организатора (без условия авторизации) -->
+                    <img th:if="${event.organizerPhotoUrl != null}" th:src="@{${event.organizerPhotoUrl}}" alt="Organizer Photo" style="width: 30px; height: 30px; border-radius: 50%; margin-left: 5px; vertical-align: middle;">
+                </p>
+
 
                 <!-- Отображение рейтинга -->
                 <p th:if="${event.averageRating != null}">

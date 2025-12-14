@@ -56,6 +56,8 @@
 
             <p><strong>Participants:</strong> <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
             <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
+            <!-- Отображение фото организатора (без условия авторизации) -->
+            <img th:if="${event.organizerPhotoUrl != null}" th:src="@{${event.organizerPhotoUrl}}" alt="Organizer Photo" style="width: 40px; height: 40px; border-radius: 50%; margin-left: 10px; vertical-align: middle;">
         </div>
 
         <!-- Кнопки Join/Leave -->
