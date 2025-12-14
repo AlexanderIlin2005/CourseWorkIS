@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.itmo.repository.ReviewRepository; // <-- Добавьте импорт
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +35,8 @@ import org.itmo.model.enums.EventDifficulty;
 public class EventService {
 
     private final EventRepository eventRepository;
+
+    private final ReviewRepository reviewRepository; // <-- Внедрите репозиторий отзывов
 
     public List<Event> findAll() {
         return eventRepository.findAll();
@@ -155,6 +159,11 @@ public class EventService {
             event.setUpdatedAt(LocalDateTime.now());
             eventRepository.save(event); // Сохраняем обновление статуса
         }
+    }
+
+    // Новый метод для получения количества отзывов
+    public long getReviewCountForEvent(Long eventId) {
+        return reviewRepository.countByEventId(eventId);
     }
 
 

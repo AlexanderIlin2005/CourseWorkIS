@@ -47,6 +47,17 @@
                 <p>Time: <span th:text="|${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')} - ${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}|">Time</span></p>
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                 <p>Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a></p>
+
+                <!-- Отображение рейтинга -->
+                <p th:if="${event.averageRating != null}">
+                    <strong>Rating:</strong>
+                    <span th:text="${#numbers.formatDecimal(event.averageRating, 1, 2)}">4.50</span>
+                    (<span th:text="${event.reviewCount ?: 0}">0</span> reviews)
+                </p>
+                <p th:unless="${event.averageRating != null}">
+                    <strong>Rating:</strong> Not rated yet
+                </p>
+
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
                 <!-- No Join/Leave/Edit/Delete buttons for completed events -->
             </div>

@@ -59,7 +59,13 @@ public class EventController {
                 eventTypeId, difficulty, minDuration, maxDuration);
 
         List<EventDto> eventDtos = activeEvents.stream()
-                .map(eventMapper::toEventDto)
+                .map(event -> {
+                    EventDto dto = eventMapper.toEventDto(event);
+                    // --- ДОБАВЛЕНО: Заполнение количества отзывов ---
+                    dto.setReviewCount(eventService.getReviewCountForEvent(event.getId()));
+                    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
         model.addAttribute("eventTypes", eventTypeRepository.findAll());
@@ -77,7 +83,11 @@ public class EventController {
     public String listCompletedEvents(Model model) {
         List<Event> completedEvents = eventService.findCompletedEvents();
         List<EventDto> eventDtos = completedEvents.stream()
-                .map(eventMapper::toEventDto)
+                .map(event -> {
+                    EventDto dto = eventMapper.toEventDto(event);
+                    dto.setReviewCount(eventService.getReviewCountForEvent(event.getId()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
         model.addAttribute("events", eventDtos);
         return "events/completed-events";
