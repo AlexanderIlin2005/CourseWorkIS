@@ -33,6 +33,9 @@ import org.itmo.model.enums.EventStatus;
 import org.itmo.model.Participation;
 
 import org.itmo.mapper.ParticipationMapper;
+import org.itmo.repository.EventRepository;
+
+import java.util.ArrayList;
 
 @Controller
 @RequiredArgsConstructor
@@ -52,6 +55,9 @@ public class UserController {
     @Autowired
     private ParticipationMapper participationMapper; // <-- 2. ОБЪЯВИТЕ ПОЛЕ
     // --- КОНЕЦ ВНЕДРЕНИЯ ---
+
+    @Autowired
+    private EventRepository eventRepository;
 
 
     // --- КОНЕЦ ВНЕДРЕНИЯ ---
@@ -76,24 +82,42 @@ public class UserController {
         model.addAttribute("user", userDto);
 
         // Получаем все события пользователя
-        List<Event> organizedEvents = userService.findOrganizedEvents(currentUser.getId());
+        // --- ИЗМЕНЕНО: Используем метод с JOIN FETCH для организованных событий ---
+        List<Event> organizedEvents = new ArrayList<>();
+        List<Event> allActiveEvents = eventRepository.findEventsWithAllDetailsByStatus(EventStatus.ACTIVE);
+        List<Event> allCompletedEvents = eventRepository.findEventsWithAllDetailsByStatus(EventStatus.COMPLETED);
 
-        // Фильтруем активные и завершённые
-        List<EventDto> activeOrganizedEvents = organizedEvents.stream()
-                .filter(event -> {
-                    // Обновляем статус при необходимости
+        // Фильтруем события текущего пользователя
+        for (Event event : allActiveEvents) {
+            if (event.getOrganizer().getId().equals(currentUser.getId())) {
+                organizedEvents.add(event);
+            }
+        }
+        for (Event event : allCompletedEvents) {
+            if (event.getOrganizer().getId().equals(currentUser.getId())) {
+                organizedEvents.add(event);
+            }
+        }
+        // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
+        // Фильтруем активные и завершённые (используя уже полученные коллекции для оптимизации)
+        List<EventDto> activeOrganizedEvents = allActiveEvents.stream()
+                .filter(event -> event.getOrganizer().getId().equals(currentUser.getId()))
+                .map(event -> {
                     eventService.updateEventStatusIfNeeded(event);
-                    return EventStatus.ACTIVE.equals(event.getStatus());
+                    return event;
                 })
+                .filter(event -> EventStatus.ACTIVE.equals(event.getStatus()))
                 .map(eventMapper::toEventDto)
                 .collect(Collectors.toList());
 
-        List<EventDto> completedOrganizedEvents = organizedEvents.stream()
-                .filter(event -> {
-                    // Обновляем статус при необходимости (на случай, если не обновился в активных)
+        List<EventDto> completedOrganizedEvents = allCompletedEvents.stream()
+                .filter(event -> event.getOrganizer().getId().equals(currentUser.getId()))
+                .map(event -> {
                     eventService.updateEventStatusIfNeeded(event);
-                    return EventStatus.COMPLETED.equals(event.getStatus());
+                    return event;
                 })
+                .filter(event -> EventStatus.COMPLETED.equals(event.getStatus()))
                 .map(eventMapper::toEventDto)
                 .collect(Collectors.toList());
 

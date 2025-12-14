@@ -46,9 +46,9 @@ public class EventService {
         return eventRepository.findByOrganizerId(organizerId);
     }
 
-    public List<Event> findByStatus(EventStatus status) { // <-- Используйте импортированный enum
-        return eventRepository.findByStatus(status);
-    }
+    //public List<Event> findByStatus(EventStatus status) { // <-- Используйте импортированный enum
+    //    return eventRepository.findByStatus(status);
+    //}
 
     @Transactional
     public Event save(Event event, User currentUser) {
@@ -125,15 +125,11 @@ public class EventService {
 
     // Новый метод для получения активных событий
     public List<Event> findActiveEvents() {
-        List<Event> allEvents = eventRepository.findAll();
-        LocalDateTime currentMoscowTime = MoscowTimeUtil.getCurrentMoscowTime();
-        return allEvents.stream()
-                .filter(event -> {
-                    // Обновляем статус события, если необходимо
-                    updateEventStatusIfNeeded(event);
-                    // Фильтруем только ACTIVE события
-                    return EventStatus.ACTIVE.equals(event.getStatus());
-                })
+        List<Event> events = eventRepository.findEventsWithAllDetailsByStatus(EventStatus.ACTIVE);
+        events.forEach(this::updateEventStatusIfNeeded);
+        // Повторная фильтрация на случай, если статус изменился
+        return events.stream()
+                .filter(e -> EventStatus.ACTIVE.equals(e.getStatus()))
                 .collect(Collectors.toList());
     }
 
@@ -173,32 +169,43 @@ public class EventService {
             Integer minDurationMinutes,
             Integer maxDurationMinutes) {
 
-        // Сначала получаем все активные события (с обновлением статуса)
-        List<Event> activeEvents = this.findActiveEvents();
+        List<Event> events;
+        // Выбираем нужный метод репозитория в зависимости от фильтров
+        if (eventTypeId != null && difficulty != null) {
+            events = eventRepository.findEventsWithAllDetailsByStatusEventTypeAndDifficulty(
+                    EventStatus.ACTIVE, eventTypeId, difficulty);
+        } else if (eventTypeId != null) {
+            events = eventRepository.findEventsWithAllDetailsByStatusAndEventType(
+                    EventStatus.ACTIVE, eventTypeId);
+        } else if (difficulty != null) {
+            events = eventRepository.findEventsWithAllDetailsByStatusAndDifficulty(
+                    EventStatus.ACTIVE, difficulty);
+        } else {
+            // Без фильтров по типу/сложности
+            events = eventRepository.findEventsWithAllDetailsByStatus(EventStatus.ACTIVE);
+        }
 
-        return activeEvents.stream()
-                .filter(event -> {
-                    // Фильтр по типу события
-                    boolean typeOk = (eventTypeId == null) ||
-                            (event.getEventType() != null && eventTypeId.equals(event.getEventType().getId()));
-                    // Фильтр по сложности
-                    boolean difficultyOk = (difficulty == null) || difficulty.equals(event.getDifficulty());
-                    return typeOk && difficultyOk;
-                })
-                .filter(event -> {
-                    // Фильтр по продолжительности
-                    if (minDurationMinutes == null && maxDurationMinutes == null) {
-                        return true; // Нет фильтра по длительности
-                    }
-                    if (event.getStartTime() == null || event.getEndTime() == null) {
-                        return false; // Событие без времени не подходит
-                    }
-                    long durationMinutes = java.time.Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
-                    boolean minOk = (minDurationMinutes == null) || (durationMinutes >= minDurationMinutes);
-                    boolean maxOk = (maxDurationMinutes == null) || (durationMinutes <= maxDurationMinutes);
-                    return minOk && maxOk;
-                })
+        // Обновляем статусы
+        events.forEach(this::updateEventStatusIfNeeded);
+        // Повторная фильтрация
+        events = events.stream()
+                .filter(e -> EventStatus.ACTIVE.equals(e.getStatus()))
                 .collect(Collectors.toList());
+
+        // Фильтрация по продолжительности на стороне Java
+        if (minDurationMinutes != null || maxDurationMinutes != null) {
+            events = events.stream().filter(event -> {
+                if (event.getStartTime() == null || event.getEndTime() == null) {
+                    return false;
+                }
+                long durationMinutes = java.time.Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
+                boolean minOk = (minDurationMinutes == null) || (durationMinutes >= minDurationMinutes);
+                boolean maxOk = (maxDurationMinutes == null) || (durationMinutes <= maxDurationMinutes);
+                return minOk && maxOk;
+            }).collect(Collectors.toList());
+        }
+
+        return events;
     }
     // --- КОНЕЦ ЗАМЕНЫ ---
 

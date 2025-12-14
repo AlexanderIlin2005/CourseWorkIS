@@ -15,6 +15,9 @@ public interface EventMapper {
     @Mapping(source = "location.name", target = "locationName") // <-- Маппинг имени локации
     @Mapping(source = "location.address", target = "locationAddress") // <-- Маппинг адреса локации
     // startTime и endTime (LocalDateTime) маппятся автоматически
+    // --- ДОБАВЛЕНО: Маппинг для EventType ---
+    @Mapping(source = "eventType.id", target = "eventTypeId")
+    @Mapping(source = "eventType.name", target = "eventTypeName")
     EventDto toEventDto(Event event);
 
     @Mapping(source = "organizerId", target = "organizer", qualifiedByName = "mapUserByIdForEvent")
