@@ -109,13 +109,64 @@
 
                 <div class="form-group">
                     <label for="startTime">Start Time:</label>
-                    <input type="datetime-local" id="startTime" th:field="*{startTime}">
+                    <input type="datetime-local" id="startTime" name="startTime" required>
+                    <input type="hidden" id="startTimeDisplay" th:value="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">
                 </div>
 
                 <div class="form-group">
                     <label for="endTime">End Time:</label>
-                    <input type="datetime-local" id="endTime" th:field="*{endTime}">
+                    <input type="datetime-local" id="endTime" name="endTime" required>
+                    <input type="hidden" id="endTimeDisplay" th:value="${#temporals.format(event.endTime, 'dd/MM/yyyy HH:mm')}">
                 </div>
+
+                <script th:inline="javascript">
+                    /*<![CDATA[*/
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Функция для преобразования формата dd/MM/yyyy HH:mm в yyyy-MM-ddTHH:mm
+                        function convertToDateTimeLocal(dateTimeStr) {
+                            if (!dateTimeStr) return '';
+
+                            // Разбиваем строку формата "dd/MM/yyyy HH:mm"
+                            const parts = dateTimeStr.split(' ');
+                            if (parts.length !== 2) return '';
+
+                            const datePart = parts[0]; // "dd/MM/yyyy"
+                            const timePart = parts[1]; // "HH:mm"
+
+                            // Разбиваем дату
+                            const dateParts = datePart.split('/');
+                            if (dateParts.length !== 3) return '';
+
+                            const day = dateParts[0];
+                            const month = dateParts[1];
+                            const year = dateParts[2];
+
+                            // Формируем строку в формате для datetime-local: yyyy-MM-ddTHH:mm
+                            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}`;
+                        }
+
+                        // Преобразуем отображаемое время в формат datetime-local
+                        const startTimeDisplay = document.getElementById('startTimeDisplay');
+                        const endTimeDisplay = document.getElementById('endTimeDisplay');
+                        const startTimeInput = document.getElementById('startTime');
+                        const endTimeInput = document.getElementById('endTime');
+
+                        if (startTimeDisplay && startTimeInput) {
+                            const formattedStart = convertToDateTimeLocal(startTimeDisplay.value);
+                            if (formattedStart) {
+                                startTimeInput.value = formattedStart;
+                            }
+                        }
+
+                        if (endTimeDisplay && endTimeInput) {
+                            const formattedEnd = convertToDateTimeLocal(endTimeDisplay.value);
+                            if (formattedEnd) {
+                                endTimeInput.value = formattedEnd;
+                            }
+                        }
+                    });
+                    /*]]>*/
+                </script>
 
                 <div class="form-group">
                     <label for="maxParticipants">Max Participants:</label>
