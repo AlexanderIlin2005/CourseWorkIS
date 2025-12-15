@@ -26,19 +26,6 @@
             height: 100%;
         }
 
-        .no-map-placeholder {
-            width: 100%;
-            height: 200px;
-            margin: 10px 0;
-            border-radius: 8px;
-            background-color: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            border: 1px dashed #ccc;
-        }
-
         .map-loading {
             background-color: #f5f5f5;
             display: flex;
@@ -139,7 +126,7 @@
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p th:text="${event.description}">Event Description</p>
 
-                <!-- Мини-карта (ленивая загрузка) -->
+                <!-- Мини-карта (ленивая загрузка) - ТОЛЬКО ЕСЛИ ЕСТЬ КООРДИНАТЫ -->
                 <div th:if="${event.startLatitude != null and event.startLongitude != null}"
                      th:id="${'mini-map-container-' + event.id}"
                      class="mini-map-container map-loading"
@@ -149,10 +136,6 @@
                               data-title=${event.title},
                               data-address=${event.startAddress}">
                     <div th:id="${'mini-map-' + event.id}" class="mini-map"></div>
-                </div>
-                <div th:unless="${event.startLatitude != null and event.startLongitude != null}"
-                     class="no-map-placeholder">
-                    No map available
                 </div>
 
                 <!-- Адреса -->
@@ -188,136 +171,102 @@
     </div>
 </main>
 
-<!-- Загружаем скрипт Яндекс.Карт только один раз в конце -->
-<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+<!-- Загружаем скрипт Яндекс.Карт асинхронно -->
 <script>
-    // Ленивая загрузка карт - только когда они появляются в области видимости
-    document.addEventListener('DOMContentLoaded', function() {
-        let yandexMapsLoaded = false;
+    // Загрузка Яндекс.Карт асинхронно
+    (function() {
+        var script = document.createElement('script');
+        script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU';
+        script.async = true;
+        script.onload = function() {
+            initYandexMaps();
+        };
+        document.head.appendChild(script);
+    })();
 
-        // Функция для загрузки конкретной карты
-        function initSingleMap(container) {
-            const lat = parseFloat(container.getAttribute('data-lat'));
-            const lng = parseFloat(container.getAttribute('data-lng'));
-            const title = container.getAttribute('data-title');
-            const address = container.getAttribute('data-address');
-
-            // Проверяем валидность координат
-            if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
-                console.log('Invalid coordinates:', lat, lng);
-                container.classList.remove('map-loading');
-                container.classList.add('map-error');
-                container.innerHTML = '<div>Invalid coordinates</div>';
-                container.setAttribute('data-loaded', 'true');
-                return;
-            }
-
-            if (container.getAttribute('data-loaded') === 'true') {
-                return;
-            }
-
-            const mapId = container.querySelector('.mini-map').id;
-
-            try {
-                // Создаем карту
-                const miniMap = new ymaps.Map(mapId, {
-                    center: [lat, lng],
-                    zoom: 14,
-                    controls: [] // Убираем все элементы управления
-                });
-
-                // Создаем метку
-                const placemark = new ymaps.Placemark([lat, lng], {
-                    balloonContent: '<strong>' + (title || 'Event') + '</strong><br>' + (address || '')
-                }, {
-                    preset: 'islands#blueDotIcon',
-                    iconColor: '#3a86ff'
-                });
-
-                // Добавляем метку на карту
-                miniMap.geoObjects.add(placemark);
-
-                // Делаем карту не интерактивной
-                miniMap.behaviors.disable([
-                    'scrollZoom',
-                    'drag',
-                    'dblClickZoom',
-                    'multiTouch',
-                    'rightMouseButtonMagnifier'
-                ]);
-
-                // Помечаем как загруженную
-                container.setAttribute('data-loaded', 'true');
-                container.classList.remove('map-loading');
-                console.log('Map loaded successfully for:', title);
-            } catch (error) {
-                console.error('Error loading map:', error);
-                container.classList.remove('map-loading');
-                container.classList.add('map-error');
-                container.innerHTML = '<div>Map loading error</div>';
-                container.setAttribute('data-loaded', 'true');
-            }
-        }
-
-        // Инициализация всех видимых карт
-        function initVisibleMaps() {
-            if (!yandexMapsLoaded) return;
-
-            const mapContainers = document.querySelectorAll('.mini-map-container:not([data-loaded="true"])');
-
-            mapContainers.forEach(container => {
-                // Проверяем, виден ли элемент
-                const rect = container.getBoundingClientRect();
-                const isVisible = (
-                    rect.top >= -100 &&
-                    rect.bottom <= (window.innerHeight + 100)
-                );
-
-                if (isVisible) {
-                    initSingleMap(container);
-                }
+    // Инициализация Яндекс.Карт
+    function initYandexMaps() {
+        if (typeof ymaps !== 'undefined') {
+            ymaps.ready(function() {
+                // Инициализируем все карты сразу (теперь быстро)
+                initAllMaps();
             });
         }
+    }
 
-        // Обработчик для ленивой загрузки при скролле
-        let scrollTimeout;
-        function handleScroll() {
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
-            }
-            scrollTimeout = setTimeout(initVisibleMaps, 50);
-        }
+    // Инициализация всех карт
+    function initAllMaps() {
+        const mapContainers = document.querySelectorAll('.mini-map-container:not([data-loaded="true"])');
 
-        // Ждем загрузки Яндекс.Карт
-        function checkYandexMapsLoaded() {
-            if (typeof ymaps !== 'undefined') {
-                yandexMapsLoaded = true;
-                ymaps.ready(function() {
-                    console.log('Yandex Maps loaded, initializing visible maps...');
-                    // Инициализируем первые 3 карты сразу
-                    setTimeout(initVisibleMaps, 300);
-
-                    // Добавляем обработчик скролла для остальных
-                    window.addEventListener('scroll', handleScroll);
-
-                    // Также проверяем при изменении размера окна
-                    window.addEventListener('resize', handleScroll);
-
-                    // Инициализируем еще раз через секунду для уверенности
-                    setTimeout(initVisibleMaps, 1000);
-                });
-            } else {
-                setTimeout(checkYandexMapsLoaded, 100);
-            }
-        }
-
-        // Начинаем проверку загрузки Яндекс.Карт
-        checkYandexMapsLoaded();
-
-        // Также инициализируем карты при клике (на всякий случай)
-        document.addEventListener('click', function() {
-            setTimeout(initVisibleMaps, 100);
+        mapContainers.forEach(container => {
+            initSingleMap(container);
         });
+    }
+
+    // Функция для загрузки конкретной карты
+    function initSingleMap(container) {
+        const lat = parseFloat(container.getAttribute('data-lat'));
+        const lng = parseFloat(container.getAttribute('data-lng'));
+        const title = container.getAttribute('data-title');
+        const address = container.getAttribute('data-address');
+
+        // Проверяем валидность координат
+        if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+            container.style.display = 'none';
+            container.setAttribute('data-loaded', 'true');
+            return;
+        }
+
+        if (container.getAttribute('data-loaded') === 'true') {
+            return;
+        }
+
+        const mapId = container.querySelector('.mini-map').id;
+
+        try {
+            // Создаем карту
+            const miniMap = new ymaps.Map(mapId, {
+                center: [lat, lng],
+                zoom: 14,
+                controls: [] // Убираем все элементы управления
+            });
+
+            // Создаем метку
+            const placemark = new ymaps.Placemark([lat, lng], {
+                balloonContent: '<strong>' + (title || 'Event') + '</strong><br>' + (address || '')
+            }, {
+                preset: 'islands#blueDotIcon',
+                iconColor: '#3a86ff'
+            });
+
+            // Добавляем метку на карту
+            miniMap.geoObjects.add(placemark);
+
+            // Делаем карту не интерактивной
+            miniMap.behaviors.disable([
+                'scrollZoom',
+                'drag',
+                'dblClickZoom',
+                'multiTouch',
+                'rightMouseButtonMagnifier'
+            ]);
+
+            // Помечаем как загруженную и убираем loading
+            container.setAttribute('data-loaded', 'true');
+            container.classList.remove('map-loading');
+        } catch (error) {
+            console.error('Error loading map:', error);
+            container.style.display = 'none';
+            container.setAttribute('data-loaded', 'true');
+        }
+    }
+
+    // Инициализация при загрузке DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        // Если Яндекс.Карты уже загружены (быстрое соединение)
+        if (typeof ymaps !== 'undefined') {
+            ymaps.ready(initAllMaps);
+        }
     });
 </script>
 
