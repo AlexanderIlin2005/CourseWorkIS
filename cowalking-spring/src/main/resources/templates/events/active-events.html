@@ -6,6 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Active Events - CoWalking</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <style>
+        .event-card {
+            position: relative;
+        }
+
+        .mini-map-container {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .mini-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .no-map-placeholder {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            border: 1px dashed #ccc;
+        }
+    </style>
 </head>
 <body>
 <header th:replace="fragments/header :: header-content"></header>
@@ -64,8 +97,6 @@
             <label for="maxDuration">Max Duration (min):</label>
             <input type="number" name="maxDuration" id="maxDuration" th:value="${selectedMaxDuration}">
 
-
-
             <button type="submit" class="btn-secondary">Apply Filter</button>
             <a th:href="@{/events/active}" class="btn-secondary">Reset</a>
         </form>
@@ -79,9 +110,11 @@
             <div class="event-card"
                  th:each="event : ${events}"
                  th:if="${#authentication == null or #authentication.principal == null or #authentication.principal.id != event.organizerId or hasRole('ADMIN')}"
+                 th:id="${'event-card-' + event.id}"
                  th:data-lat="${event.startLatitude}"
                  th:data-lng="${event.startLongitude}"
-                 th:data-title="${event.title}">
+                 th:data-title="${event.title}"
+                 th:data-address="${event.startAddress}">
 
                 <!-- Отображение фото мероприятия -->
                 <div th:if="${event.photoUrl != null}" style="margin-bottom: 10px;">
@@ -90,15 +123,27 @@
 
                 <h3 th:text="${event.title}">Event Title</h3>
                 <p th:text="${event.description}">Event Description</p>
-                <!-- СТАЛО: -->
+
+                <!-- Мини-карта -->
+                <div th:if="${event.startLatitude != null and event.startLongitude != null}"
+                     th:id="${'mini-map-container-' + event.id}"
+                     class="mini-map-container">
+                    <div th:id="${'mini-map-' + event.id}" class="mini-map"></div>
+                </div>
+                <div th:unless="${event.startLatitude != null and event.startLongitude != null}"
+                     class="no-map-placeholder">
+                    No map available
+                </div>
+
+                <!-- Адреса -->
                 <p><strong>Start Address:</strong> <span th:text="${event.startAddress}">Start Address</span></p>
                 <p th:if="${event.endAddress != null and !event.endAddress.isEmpty()}">
                     <strong>End Address:</strong> <span th:text="${event.endAddress}">End Address</span></p>
                 <p>Time: <span th:text="${#temporals.format(event.startTime, 'dd/MM/yyyy HH:mm')}">Start Time</span></p>
-                <!-- В карточке события -->
+
+                <!-- Детали события -->
                 <p>Event Type: <span th:text="${event.eventTypeName ?: 'Not specified'}">Type</span></p>
                 <p>Difficulty: <span th:text="${event.difficulty != null ? event.difficulty.displayName : 'Not specified'}">Difficulty</span></p>
-                <!-- Продолжительность можно вычислить в DTO или шаблоне, но лучше в DTO -->
                 <p>Duration: <span th:text="${event.durationMinutes + ' min' ?: 'Not specified'}">Duration</span></p>
 
                 <!-- Отображение рейтинга -->
@@ -118,75 +163,77 @@
                 </p>
 
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
-
-
             </div>
         </div>
     </div>
-
-    <!-- --- ДОБАВЛЕНО: Общая карта для списка --- -->
-    <div id="list-map-container" style="margin-top: 40px; display: none;">
-        <h3>Event Location</h3>
-        <div id="list-map" style="width: 100%; height: 300px;"></div>
-    </div>
-    <!-- --- КОНЕЦ ДОБАВЛЕНИЯ --- -->
 </main>
 
-
-<!-- Поместите этот скрипт ПЕРЕД </body> -->
-<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>
-    // Функция инициализации карты списков
-    function initListMap() {
-        const mapContainer = document.getElementById('list-map-container');
-        const mapDiv = document.getElementById('list-map');
-
-        if (!mapDiv || !mapContainer) return;
-
-        let myMap = null;
-        ymaps.ready(function () {
-            myMap = new ymaps.Map(mapDiv, {
-                center: [59.9343, 30.3351],
-                zoom: 10
-            });
-
-            // Событие наведения на карточку события
+    // Функция для инициализации всех мини-карт
+    function initAllMiniMaps() {
+        ymaps.ready(function() {
+            // Находим все карточки событий с координатами
             document.querySelectorAll('.event-card').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    const lat = parseFloat(this.getAttribute('data-lat'));
-                    const lng = parseFloat(this.getAttribute('data-lng'));
-                    const title = this.getAttribute('data-title');
+                const eventId = card.id.replace('event-card-', '');
+                const lat = parseFloat(card.getAttribute('data-lat'));
+                const lng = parseFloat(card.getAttribute('data-lng'));
+                const title = card.getAttribute('data-title');
+                const address = card.getAttribute('data-address');
 
-                    if (lat && lng && myMap) {
-                        // Очищаем старую метку
-                        myMap.geoObjects.removeAll();
-                        // Добавляем новую метку
-                        const placemark = new ymaps.Placemark([lat, lng], {
-                            balloonContent: title
-                        }, {
-                            preset: 'islands#blueDotIcon'
+                if (lat && lng) {
+                    const mapId = 'mini-map-' + eventId;
+                    const mapElement = document.getElementById(mapId);
+
+                    if (mapElement) {
+                        // Создаем карту
+                        const miniMap = new ymaps.Map(mapId, {
+                            center: [lat, lng],
+                            zoom: 14,
+                            controls: [] // Убираем все элементы управления
                         });
-                        myMap.geoObjects.add(placemark);
-                        myMap.setCenter([lat, lng], 13);
-                        mapContainer.style.display = 'block';
-                    }
-                });
-            });
 
-            // Скрываем карту при уходе мыши со всей области событий
-            const eventsGrid = document.querySelector('.events-grid');
-            if (eventsGrid) {
-                eventsGrid.addEventListener('mouseleave', function() {
-                    mapContainer.style.display = 'none';
-                });
-            }
+                        // Создаем метку
+                        const placemark = new ymaps.Placemark([lat, lng], {
+                            balloonContent: '<strong>' + title + '</strong><br>' + address
+                        }, {
+                            preset: 'islands#blueDotIcon',
+                            iconColor: '#3a86ff'
+                        });
+
+                        // Добавляем метку на карту
+                        miniMap.geoObjects.add(placemark);
+
+                        // Делаем карту не интерактивной (только для просмотра)
+                        miniMap.behaviors.disable([
+                            'scrollZoom',
+                            'drag',
+                            'dblClickZoom',
+                            'multiTouch',
+                            'rightMouseButtonMagnifier'
+                        ]);
+                    }
+                }
+            });
         });
     }
 
     // Запускаем инициализацию после загрузки страницы
-    document.addEventListener('DOMContentLoaded', initListMap);
-</script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Инициализируем карты
+        initAllMiniMaps();
 
+        // Также инициализируем карты при динамической загрузке контента (если будет)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length) {
+                    setTimeout(initAllMiniMaps, 100);
+                }
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+</script>
 
 </body>
 </html>
