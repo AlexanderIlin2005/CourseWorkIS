@@ -91,4 +91,12 @@ public class Event {
     private String endAddress;
     // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
+    // --- ДОБАВЛЕНО: Координаты начала мероприятия ---
+    @Column(name = "start_latitude")
+    private Double startLatitude;
+
+    @Column(name = "start_longitude")
+    private Double startLongitude;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
 }

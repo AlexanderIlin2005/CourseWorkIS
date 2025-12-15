@@ -27,6 +27,9 @@ public interface EventMapper {
     @Mapping(source = "startAddress", target = "startAddress")
     @Mapping(source = "endAddress", target = "endAddress")
         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+    // --- ДОБАВЛЕНО: Маппинг для координат ---
+    @Mapping(source = "startLatitude", target = "startLatitude")
+    @Mapping(source = "startLongitude", target = "startLongitude")
     EventDto toEventDto(Event event);
 
 

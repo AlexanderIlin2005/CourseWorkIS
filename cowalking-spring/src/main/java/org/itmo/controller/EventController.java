@@ -122,6 +122,8 @@ public class EventController {
             @RequestParam("endAddress") String endAddress,
             @RequestParam(value = "maxParticipants", required = false) Integer maxParticipants,
             @RequestParam(value = "photo", required = false) MultipartFile photoFile,
+            @RequestParam(value = "startLatitude", required = false) Double startLatitude,
+            @RequestParam(value = "startLongitude", required = false) Double startLongitude,
             Model model, Authentication authentication) {
 
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof User)) {
@@ -141,6 +143,11 @@ public class EventController {
             event.setOrganizer(currentUser);
             event.setStartAddress(startAddress);
             event.setEndAddress(endAddress);
+
+            // --- ДОБАВЛЕНО: Установка координат ---
+            event.setStartLatitude(startLatitude);
+            event.setStartLongitude(startLongitude);
+            // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
             // Обработка загрузки фотографии
             if (photoFile != null && !photoFile.isEmpty()) {
@@ -244,6 +251,8 @@ public class EventController {
             @RequestParam("endAddress") String endAddress,
             @RequestParam(value = "maxParticipants", required = false) Integer maxParticipants,
             @RequestParam(value = "photo", required = false) MultipartFile photoFile,
+            @RequestParam(value = "startLatitude", required = false) Double startLatitude,
+            @RequestParam(value = "startLongitude", required = false) Double startLongitude,
             Model model, Authentication authentication) {
 
         Event existingEvent = eventService.findById(id)
@@ -272,6 +281,11 @@ public class EventController {
             event.setOrganizer(existingEvent.getOrganizer());
             event.setStartAddress(startAddress);
             event.setEndAddress(endAddress);
+
+            // --- ДОБАВЛЕНО: Установка координат ---
+            event.setStartLatitude(startLatitude);
+            event.setStartLongitude(startLongitude);
+            // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
             // Обработка загрузки фотографии
             if (photoFile != null && !photoFile.isEmpty()) {
@@ -310,6 +324,11 @@ public class EventController {
             errorDto.setEndAddress(endAddress);
             errorDto.setMaxParticipants(maxParticipants);
             errorDto.setPhotoUrl(existingEvent.getPhotoUrl());
+
+            // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ: Заполняем координаты из параметров формы ---
+            errorDto.setStartLatitude(startLatitude);
+            errorDto.setStartLongitude(startLongitude);
+            // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
             model.addAttribute("event", errorDto);
             model.addAttribute("eventTypes", eventTypeRepository.findAll());

@@ -61,11 +61,23 @@
                     <textarea id="description" th:field="*{description}" rows="5"></textarea>
                 </div>
 
-                <!-- СТАЛО: -->
+                <!-- ЗАМЕНИТЕ блок startAddress на следующий -->
                 <div class="form-group">
                     <label for="startAddress">Start Address:</label>
-                    <input type="text" id="startAddress" th:field="*{startAddress}" required placeholder="Enter start address">
+                    <input type="text" id="startAddress" name="startAddress" th:field="*{startAddress}" required placeholder="Enter start address">
                 </div>
+
+                <!-- ЗАМЕНИТЕ ВСЕ, ЧТО СВЯЗАНО С КАРТОЙ, НА ЭТО -->
+                <div class="form-group">
+                    <label for="startLatitude">Start Latitude:</label>
+                    <input type="number" step="any" id="startLatitude" th:field="*{startLatitude}" placeholder="e.g., 59.9343" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="startLongitude">Start Longitude:</label>
+                    <input type="number" step="any" id="startLongitude" th:field="*{startLongitude}" placeholder="e.g., 30.3351" required>
+                </div>
+                <!-- КОНЕЦ ЗАМЕНЫ -->
 
                 <div class="form-group">
                     <label for="endAddress">End Address (Optional):</label>
@@ -113,5 +125,8 @@
             </form>
         </div>
     </main>
+
+
+
 </body>
 </html>

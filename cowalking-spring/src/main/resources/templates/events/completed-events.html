@@ -15,7 +15,10 @@
         <h1>Completed Events</h1>
 
         <div class="events-grid">
-            <div class="event-card" th:each="event : ${events}">
+            <div class="event-card" th:each="event : ${events}"
+                 th:data-lat="${event.startLatitude}"
+                 th:data-lng="${event.startLongitude}"
+                 th:data-title="${event.title}">
                 <h3 th:text="${event.title}">Event Title</h3>
 
                 <!-- Отображение фото мероприятия (без условия авторизации) -->
@@ -57,6 +60,68 @@
             </div>
         </div>
     </div>
+
+    <!-- --- ДОБАВЛЕНО: Общая карта для списка --- -->
+    <div id="list-map-container" style="margin-top: 40px; display: none;">
+        <h3>Event Location</h3>
+        <div id="list-map" style="width: 100%; height: 300px;"></div>
+    </div>
+    <!-- --- КОНЕЦ ДОБАВЛЕНИЯ --- -->
 </main>
+
+<!-- Поместите этот скрипт ПЕРЕД </body> -->
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+<script>
+    // Функция инициализации карты списков
+    function initListMap() {
+        const mapContainer = document.getElementById('list-map-container');
+        const mapDiv = document.getElementById('list-map');
+
+        if (!mapDiv || !mapContainer) return;
+
+        let myMap = null;
+        ymaps.ready(function () {
+            myMap = new ymaps.Map(mapDiv, {
+                center: [59.9343, 30.3351],
+                zoom: 10
+            });
+
+            // Событие наведения на карточку события
+            document.querySelectorAll('.event-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const lat = parseFloat(this.getAttribute('data-lat'));
+                    const lng = parseFloat(this.getAttribute('data-lng'));
+                    const title = this.getAttribute('data-title');
+
+                    if (lat && lng && myMap) {
+                        // Очищаем старую метку
+                        myMap.geoObjects.removeAll();
+                        // Добавляем новую метку
+                        const placemark = new ymaps.Placemark([lat, lng], {
+                            balloonContent: title
+                        }, {
+                            preset: 'islands#blueDotIcon'
+                        });
+                        myMap.geoObjects.add(placemark);
+                        myMap.setCenter([lat, lng], 13);
+                        mapContainer.style.display = 'block';
+                    }
+                });
+            });
+
+            // Скрываем карту при уходе мыши со всей области событий
+            const eventsGrid = document.querySelector('.events-grid');
+            if (eventsGrid) {
+                eventsGrid.addEventListener('mouseleave', function() {
+                    mapContainer.style.display = 'none';
+                });
+            }
+        });
+    }
+
+    // Запускаем инициализацию после загрузки страницы
+    document.addEventListener('DOMContentLoaded', initListMap);
+</script>
+
 </body>
 </html>

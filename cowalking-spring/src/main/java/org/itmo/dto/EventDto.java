@@ -53,6 +53,11 @@ public class EventDto {
     private String endAddress;
     // --- КОНЕЦ ДОБАВЛЕНИЯ ---
 
+    // --- ДОБАВЛЕНО: Координаты начала мероприятия ---
+    private Double startLatitude;
+    private Double startLongitude;
+    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
 
     public EventDto() {}
 
@@ -103,6 +108,11 @@ public class EventDto {
         // --- ДОБАВЛЕНО: Маппинг адресов ---
         this.startAddress = event.getStartAddress();
         this.endAddress = event.getEndAddress();
+        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+
+        // --- ДОБАВЛЕНО: Маппинг координат ---
+        this.startLatitude = event.getStartLatitude();
+        this.startLongitude = event.getStartLongitude();
         // --- КОНЕЦ ДОБАВЛЕНИЯ ---
     }
 }
