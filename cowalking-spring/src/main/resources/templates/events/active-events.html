@@ -120,7 +120,7 @@
 
                 <!-- Отображение фото мероприятия -->
                 <div th:if="${event.photoUrl != null}" style="margin-bottom: 10px;">
-                    <img th:src="@{${event.photoUrl}}" alt="Event Photo" style="max-width: 100%; height: auto; border-radius: 8px;">
+                    <img th:src="@{${event.photoUrl}}" alt="" style="max-width: 100%; height: auto; border-radius: 8px;">
                 </div>
 
                 <h3 th:text="${event.title}">Event Title</h3>
@@ -162,7 +162,7 @@
                 <p>Participants: <span th:text="${event.currentParticipants} + '/' + ${event.maxParticipants ?: 'Unlimited'}">Participants</span></p>
                 <p>
                     Organizer: <a th:href="@{/users/profile/{id}(id=${event.organizerId})}" th:text="${event.organizerUsername}">Organizer Name</a>
-                    <img th:if="${event.organizerPhotoUrl != null}" th:src="@{${event.organizerPhotoUrl}}" alt="Organizer Photo" style="width: 30px; height: 30px; border-radius: 50%; margin-left: 5px; vertical-align: middle;">
+                    <img th:if="${event.organizerPhotoUrl != null}" th:src="@{${event.organizerPhotoUrl}}" alt="" style="width: 30px; height: 30px; border-radius: 50%; margin-left: 5px; vertical-align: middle;">
                 </p>
 
                 <a th:href="@{/events/{id}(id=${event.id})}" class="btn-secondary">View Details</a>
