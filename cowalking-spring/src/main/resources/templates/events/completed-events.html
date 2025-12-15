@@ -166,7 +166,7 @@
             // Создаем карту
             const miniMap = new ymaps.Map(mapId, {
                 center: [lat, lng],
-                zoom: 14,
+                zoom: 15,
                 controls: [] // Убираем все элементы управления
             });
 
@@ -174,8 +174,8 @@
             const placemark = new ymaps.Placemark([lat, lng], {
                 balloonContent: '<strong>' + (title || 'Event') + '</strong><br>' + (address || '')
             }, {
-                preset: 'islands#blueDotIcon',
-                iconColor: '#3a86ff'
+                preset: 'islands#redDotIcon',
+                iconColor: '#ff0000'
             });
 
             // Добавляем метку на карту
