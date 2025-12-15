@@ -17,12 +17,12 @@ public interface ReportMapper {
     @Mapping(source = "reporterId", target = "reporter", qualifiedByName = "mapUserByIdForReport")
     @Mapping(source = "reportedUserId", target = "reportedUser", qualifiedByName = "mapUserByIdForReport")
     @Mapping(source = "eventId", target = "event", qualifiedByName = "mapEventByIdForReport")
-    @Mapping(target = "createdAt", ignore = true) // Игнорируем createdAt при создании сущности из DTO
-    @Mapping(target = "resolvedAt", ignore = true) // Игнорируем resolvedAt при создании сущности из DTO
-    @Mapping(target = "isResolved", ignore = true) // Игнорируем isResolved при создании сущности из DTO
+    @Mapping(target = "createdAt", ignore = true) 
+    @Mapping(target = "resolvedAt", ignore = true) 
+    @Mapping(target = "isResolved", ignore = true) 
     Report toReport(ReportDto reportDto);
 
-    // --- ИМЕНОВАННЫЕ МЕТОДЫ для маппинга связей ---
+    
     @Named("mapUserByIdForReport")
     default org.itmo.model.User mapUserByIdForReport(Long id) {
         if (id == null) {
@@ -30,7 +30,7 @@ public interface ReportMapper {
         }
         org.itmo.model.User user = new org.itmo.model.User();
         user.setId(id);
-        // В реальности здесь должен быть вызов сервиса для получения полного объекта
+        
         return user;
     }
 
@@ -41,8 +41,8 @@ public interface ReportMapper {
         }
         org.itmo.model.Event event = new org.itmo.model.Event();
         event.setId(id);
-        // В реальности здесь должен быть вызов сервиса для получения полного объекта
+        
         return event;
     }
-    // --- КОНЕЦ ИМЕНОВАННЫХ МЕТОДОВ ---
+    
 }

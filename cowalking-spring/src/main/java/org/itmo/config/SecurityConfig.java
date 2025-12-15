@@ -1,7 +1,7 @@
-// src/main/java/org/itmo/config/SecurityConfig.java
+
 package org.itmo.config;
 
-import org.itmo.service.UserService; // Убедитесь, что импортирован
+import org.itmo.service.UserService; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,56 +23,56 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService; // Сервис для UserDetailsService
+    private UserService userService; 
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // Сервис для PasswordEncoder
+    private PasswordEncoder passwordEncoder; 
 
 
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return userService; // Возвращаем ваш UserService (UserDetailsService)
+        return userService; 
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        // Правильный подход - используем XorCsrfTokenRequestAttributeHandler
+        
         CsrfTokenRequestAttributeHandler requestHandler = new XorCsrfTokenRequestAttributeHandler();
 
         http
                 .csrf((csrf) -> csrf
-                        .csrfTokenRequestHandler(requestHandler) // Используем обработчик
-                        .ignoringRequestMatchers("/login") // Игнорируем логин (опционально)
+                        .csrfTokenRequestHandler(requestHandler) 
+                        .ignoringRequestMatchers("/login") 
                 )
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() // Разрешаем доступ
-                        .requestMatchers("/events", "/events/{id}").permitAll() // Разрешаем просматривать события всем
-                        .requestMatchers("/events/completed", "/events/active").permitAll() // Разрешаем просмотр завершённых всем
-                        // --- ИСПРАВЛЕНО: разрешаем аутентифицированным пользователям создавать события ---
-                        .requestMatchers("/events/create").authenticated() // <-- Только аутентифицированные могут создавать
-                        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-                        .requestMatchers("/participations/join/**", "/participations/leave/**").authenticated() // Требует аутентификации
-                        .requestMatchers("/reports/create").authenticated() // Требует аутентификации
-                        .requestMatchers("/reports", "/reports/{id}/resolve").hasRole("ADMIN") // Только админ
-                        // --- ИСПРАВЛЕНО: разрешаем аутентифицированным пользователям редактировать/удалять (проверка прав внутри контроллера) ---
-                        .requestMatchers("/events/{id}/edit", "/events/{id}/delete").authenticated() // <-- Только аутентифицированные могут редактировать/удалять
-                        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-                        // --- ДОБАВЛЕНО: разрешаем аутентифицированным пользователям обновлять профиль ---
-                        .requestMatchers("/users/update").authenticated() // <-- Только аутентифицированные могут обновлять профиль
-                        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
-                        // --- ДОБАВЛЕНО: Разрешить доступ к публичному профилю ---
+                        .requestMatchers("/", "/registration", "/css/**", "/js/**", "/images/**", "/login").permitAll() 
+                        .requestMatchers("/events", "/events/{id}").permitAll() 
+                        .requestMatchers("/events/completed", "/events/active").permitAll() 
+                        
+                        .requestMatchers("/events/create").authenticated() 
+                        
+                        .requestMatchers("/participations/join/**", "/participations/leave/**").authenticated() 
+                        .requestMatchers("/reports/create").authenticated() 
+                        .requestMatchers("/reports", "/reports/{id}/resolve").hasRole("ADMIN") 
+                        
+                        .requestMatchers("/events/{id}/edit", "/events/{id}/delete").authenticated() 
+                        
+                        
+                        .requestMatchers("/users/update").authenticated() 
+                        
+                        
                         .requestMatchers("/users/profile/{id}").permitAll()
-                        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // <-- Только админ может управлять пользователями
-                        .anyRequest().authenticated() // Все остальные требуют аутентификации
+                        
+                        .requestMatchers("/admin/**").hasRole("ADMIN") 
+                        .anyRequest().authenticated() 
                 )
                 .formLogin((form) -> form
-                        .loginPage("/login") // Указываем страницу логина
-                        .permitAll() // Разрешаем всем доступ к странице логина
+                        .loginPage("/login") 
+                        .permitAll() 
                 )
-                .logout(LogoutConfigurer::permitAll); // Разрешить всем выход
+                .logout(LogoutConfigurer::permitAll); 
 
         return http.build();
     }

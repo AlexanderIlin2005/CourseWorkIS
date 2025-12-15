@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/repository/EventRepository.java
+
 package org.itmo.repository;
 
 import org.itmo.model.Event;
@@ -15,9 +15,9 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByOrganizerId(Long organizerId);
-    // УДАЛЕНО: findByLocationId
+    
 
-    // --- ИСПРАВЛЕНО: Удалены все JOIN FETCH для location ---
+    
     @Query("SELECT e FROM Event e " +
             "JOIN FETCH e.organizer " +
             "LEFT JOIN FETCH e.eventType " +

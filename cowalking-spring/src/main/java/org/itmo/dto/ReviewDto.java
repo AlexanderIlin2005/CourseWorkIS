@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/dto/ReviewDto.java
+
 package org.itmo.dto;
 
 import lombok.Data;

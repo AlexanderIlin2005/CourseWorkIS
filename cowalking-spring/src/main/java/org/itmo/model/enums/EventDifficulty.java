@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/model/enums/EventDifficulty.java
+
 package org.itmo.model.enums;
 
 public enum EventDifficulty {

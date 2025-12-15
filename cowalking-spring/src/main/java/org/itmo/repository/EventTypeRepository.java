@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/repository/EventTypeRepository.java
+
 package org.itmo.repository;
 
 import org.itmo.model.EventType;

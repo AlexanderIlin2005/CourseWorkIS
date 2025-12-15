@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/dto/UserDto.java
+
 package org.itmo.dto;
 
 import org.itmo.model.User;
@@ -12,23 +12,23 @@ public class UserDto {
     private Long id;
     private String username;
     private String email;
-    private String phone; // Added phone field
-    private String bio;   // Added bio field
-    private String password; // Field for password during registration
+    private String phone; 
+    private String bio;   
+    private String password; 
 
-    // --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ ---
-    private String telegramId; // Added Telegram ID field
-    private String vkId;       // Added VK ID field
-    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+    
+    private String telegramId; 
+    private String vkId;       
+    
 
     private UserRole role;
     private Boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // --- ДОБАВЛЕНО: URL фотографии профиля ---
+    
     private String photoUrl;
-    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+    
 
     public UserDto() {}
 
@@ -36,16 +36,16 @@ public class UserDto {
         this.id = user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
-        this.phone = user.getPhone(); // Added phone mapping
-        this.bio = user.getBio();     // Added bio mapping
+        this.phone = user.getPhone(); 
+        this.bio = user.getBio();     
 
-        // --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ ---
+        
         this.telegramId = user.getTelegramId();
         this.vkId = user.getVkId();
-        // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+        
 
         this.role = user.getRole();
-        this.active = user.isEnabled(); // Use isEnabled() instead of getActive()
+        this.active = user.isEnabled(); 
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
 

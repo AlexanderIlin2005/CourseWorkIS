@@ -41,13 +41,13 @@ public class ReportController {
         }
 
         User currentUser = (User) auth.getPrincipal();
-        // Check if user is admin to allow creating reports against other users/events
+        
         boolean isAdmin = currentUser.getRole().equals(UserRole.ADMIN);
 
         model.addAttribute("report", new ReportDto());
-        // Only pass users and events if user is admin
+        
         if (isAdmin) {
-            model.addAttribute("users", userService.findAll()); // Now available
+            model.addAttribute("users", userService.findAll()); 
             model.addAttribute("events", eventService.findAll());
         }
         return "reports/create";
@@ -63,7 +63,7 @@ public class ReportController {
             report.setReason(reportDto.getReason());
             report.setReporter(currentUser);
 
-            // Set reported user if provided and user is admin
+            
             if (reportDto.getReportedUserId() != null) {
                 if (!currentUser.getRole().equals(UserRole.ADMIN)) {
                     model.addAttribute("error", "Only admins can report specific users.");
@@ -75,7 +75,7 @@ public class ReportController {
                 report.setReportedUser(reportedUser);
             }
 
-            // Set event if provided
+            
             if (reportDto.getEventId() != null) {
                 Event event = eventService.findById(reportDto.getEventId())
                     .orElseThrow(() -> new RuntimeException("Event not found"));
@@ -88,7 +88,7 @@ public class ReportController {
         } catch (Exception e) {
             model.addAttribute("error", "Report creation failed: " + e.getMessage());
             model.addAttribute("report", reportDto);
-            // Reload users and events if admin
+            
             if (currentUser.getRole().equals(UserRole.ADMIN)) {
                 model.addAttribute("users", userService.findAll());
                 model.addAttribute("events", eventService.findAll());

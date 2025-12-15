@@ -1,7 +1,7 @@
-// src/main/java/org/itmo/model/User.java
+
 package org.itmo.model;
 
-import org.itmo.model.converters.LocalDateTimeConverter; // Импортируем конвертер
+import org.itmo.model.converters.LocalDateTimeConverter; 
 import org.itmo.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -35,37 +35,37 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(unique = true, nullable = true) // Phone can be optional initially
+    @Column(unique = true, nullable = true) 
     private String phone;
 
-    @Column(length = 1000, nullable = true) // Bio field
+    @Column(length = 1000, nullable = true) 
     private String bio;
 
-    // --- ДОБАВЛЕНО: ПОЛЯ ДЛЯ СОЦСЕТЕЙ ---
-    @Column(unique = true, nullable = true) // Telegram ID (@username)
+    
+    @Column(unique = true, nullable = true) 
     private String telegramId;
 
-    @Column(unique = true, nullable = true) // VK ID (@username)
+    @Column(unique = true, nullable = true) 
     private String vkId;
-    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+    
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
     private boolean active = true;
 
-    @Convert(converter = LocalDateTimeConverter.class) // Используем конвертер для createdAt
+    @Convert(converter = LocalDateTimeConverter.class) 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Convert(converter = LocalDateTimeConverter.class) // Используем конвертер для updatedAt
+    @Convert(converter = LocalDateTimeConverter.class) 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // --- ДОБАВЛЕНО: URL фотографии профиля ---
+    
     @Column(length = 500)
     private String photoUrl;
-    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+    
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -92,7 +92,7 @@ public class User implements UserDetails {
         return active;
     }
 
-    // Helper method to check if user is organizer of an event
+    
     public boolean isOrganizerOf(Event event) {
         if (event == null || event.getOrganizer() == null) {
             return false;

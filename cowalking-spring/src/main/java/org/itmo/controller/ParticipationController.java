@@ -33,9 +33,9 @@ public class ParticipationController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        // --- ИСПРАВЛЕНО: Редирект на список активных событий ---
+        
         return "redirect:/events/active";
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        
     }
 
     @PostMapping("/participations/leave/{eventId}")
@@ -50,12 +50,12 @@ public class ParticipationController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        // --- ИСПРАВЛЕНО: Редирект на список активных событий ---
+        
         return "redirect:/events/active";
-        // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+        
     }
 
-    // --- НОВЫЙ МЕТОД: Подтверждение заявки ---
+    
     @PostMapping("/participations/confirm/{participationId}")
     public String confirmParticipation(@PathVariable Long participationId, RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -68,16 +68,16 @@ public class ParticipationController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        // Перенаправляем обратно на страницу события
-        // Нужно получить ID события из participationId
-        // Для простоты, предположим, что у нас есть метод в сервисе
-        // Long eventId = participationService.getEventIdByParticipationId(participationId);
-        // return "redirect:/events/" + eventId;
-        // Или просто на профиль
+        
+        
+        
+        
+        
+        
         return "redirect:/users/profile";
     }
 
-    // --- НОВЫЙ МЕТОД: Отклонение заявки ---
+    
     @PostMapping("/participations/reject/{participationId}")
     public String rejectParticipation(@PathVariable Long participationId, RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

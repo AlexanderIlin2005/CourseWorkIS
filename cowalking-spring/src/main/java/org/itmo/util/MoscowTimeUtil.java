@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/util/MoscowTimeUtil.java
+
 package org.itmo.util;
 
 import java.time.LocalDateTime;
@@ -28,13 +28,13 @@ public class MoscowTimeUtil {
         if (localDateTime == null) {
             return null;
         }
-        // Если localDateTime из БД, мы считаем его московским.
-        // Для сравнения с текущим временем Москвы, конвертируем текущее в UTC и сравниваем?
-        // Но проще: конвертируем текущее время Москвы в LocalDateTime без зоны, как в БД.
-        // На самом деле, если в БД хранится LocalDateTime, и мы его считаем московским,
-        // то для сравнения с текущим московским временем, нужно получить текущее время Москвы как LocalDateTime.
-        // Это и делает getCurrentMoscowTime().
-        return localDateTime; // Предполагаем, что localDateTime уже в московской зоне
+        
+        
+        
+        
+        
+        
+        return localDateTime; 
     }
 
     /**
@@ -43,7 +43,7 @@ public class MoscowTimeUtil {
      */
     public static boolean isEventCompleted(LocalDateTime eventEndTime) {
         if (eventEndTime == null) {
-            return false; // Событие без времени окончания считается активным
+            return false; 
         }
         LocalDateTime currentMoscowTime = getCurrentMoscowTime();
         return !eventEndTime.isAfter(currentMoscowTime);

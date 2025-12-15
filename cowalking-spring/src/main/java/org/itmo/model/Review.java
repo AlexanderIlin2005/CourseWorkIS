@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/model/Review.java
+
 package org.itmo.model;
 
 import jakarta.persistence.*;
@@ -28,10 +28,10 @@ public class Review {
     private User user;
 
     @Column(nullable = false)
-    private Integer rating; // 1-5
+    private Integer rating; 
 
     @Column(length = 2000)
-    private String comment; // Optional
+    private String comment; 
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

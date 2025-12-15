@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/config/DataInitializer.java
+
 package org.itmo.config;
 
 import org.itmo.model.Location;
@@ -6,9 +6,9 @@ import org.itmo.model.User;
 import org.itmo.model.enums.UserRole;
 import org.itmo.service.LocationService;
 import org.itmo.service.UserService;
-import org.itmo.repository.LocationRepository; // <-- Импортируем Repository
+import org.itmo.repository.LocationRepository; 
 import org.itmo.repository.EventTypeRepository;
-import org.itmo.model.EventType; // <-- Добавлен импорт
+import org.itmo.model.EventType; 
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct; // Используем PostConstruct
+import jakarta.annotation.PostConstruct; 
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,22 +26,22 @@ public class DataInitializer {
 
     private final UserService userService;
     private final LocationService locationService;
-    private final LocationRepository locationRepository; // <-- Внедряем Repository
-    private final EventTypeRepository eventTypeRepository; // <-- Внедряем репозиторий типов
+    private final LocationRepository locationRepository; 
+    private final EventTypeRepository eventTypeRepository; 
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
-    @PostConstruct // Используем @PostConstruct вместо ApplicationListener
+    @PostConstruct 
     public void initializeData() {
         logger.info("Running DataInitializer");
 
-        // Инициализация локаций
+        
         initializeLocations();
 
-        // Инициализация пользователя admin
+        
         initializeAdminUser();
 
-        initializeEventTypes(); // <-- Вызываем инициализацию типов
+        initializeEventTypes(); 
     }
 
     private void initializeLocations() {
@@ -54,8 +54,8 @@ public class DataInitializer {
                     createLocation("Невский проспект", "Невский проспект, Санкт-Петербург", 59.9343, 30.3178, "Популярное место для прогулок в центре.")
             );
 
-            // locationService.saveAll(defaultLocations); // <-- УБРАНО: если нет метода saveAll
-            locationRepository.saveAll(defaultLocations); // <-- ИСПОЛЬЗУЕМ Repository
+            
+            locationRepository.saveAll(defaultLocations); 
             logger.info("Default locations created successfully.");
         } else {
             logger.info("Locations already exist, skipping creation.");
@@ -80,8 +80,8 @@ public class DataInitializer {
             User admin = new User();
             admin.setUsername("admin");
             admin.setEmail("admin@cowalking.com");
-            // Пароль будет захеширован в UserService.save()
-            admin.setPassword("admin"); // raw password, будет захеширован
+            
+            admin.setPassword("admin"); 
             admin.setRole(UserRole.ADMIN);
             admin.setActive(true);
 
@@ -89,14 +89,14 @@ public class DataInitializer {
             logger.info("Default admin user created successfully.");
         } else {
             logger.info("Admin user already exists. Updating password and role.");
-            // --- ОБНОВЛЯЕМ пароль и роль ---
-            //existingAdmin.setPassword("admin"); // raw password, будет захеширован
-            //existingAdmin.setRole(UserRole.ADMIN);
-            //existingAdmin.setActive(true);
-            // Хеширование пароля происходит в UserService.save
+            
+            
+            
+            
+            
             userService.save(existingAdmin);
             logger.info("Default admin user updated.");
-            // --- КОНЕЦ ОБНОВЛЕНИЯ ---
+            
         }
     }
 

@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/repository/ReviewRepository.java
+
 package org.itmo.repository;
 
 import org.itmo.model.Review;

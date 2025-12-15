@@ -21,11 +21,11 @@ public class HomeController {
         return "login";
     }
 
-    // --- УБРАНО: @GetMapping("/registration") ---
-    // Логика регистрации теперь в UserController
-    // @GetMapping("/registration")
-    // public String registration() {
-    //     return "registration";
-    // }
-    // --- КОНЕЦ УБРАНОГО ---
+    
+    
+    
+    
+    
+    
+    
 }

@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/model/EventType.java
+
 package org.itmo.model;
 
 import jakarta.persistence.*;
@@ -18,10 +18,10 @@ public class EventType {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String name; // Например, "Пешая прогулка"
+    private String name; 
 
     @Column(length = 1000)
-    private String description; // Описание типа
+    private String description; 
 
     public EventType(String name, String description) {
         this.name = name;

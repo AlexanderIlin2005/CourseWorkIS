@@ -6,7 +6,7 @@ import jakarta.persistence.Converter;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-@Converter(autoApply = true) // autoApply применяет конвертер ко всем LocalDateTime полям автоматически
+@Converter(autoApply = true) 
 public class LocalDateTimeConverter implements AttributeConverter<LocalDateTime, Timestamp> {
 
     @Override

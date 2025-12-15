@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/service/ReviewService.java
+
 package org.itmo.service;
 
 import org.itmo.model.Event;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
-import org.itmo.model.enums.ParticipationStatus; // <-- Убедитесь, что импортирован
+import org.itmo.model.enums.ParticipationStatus; 
 
 @Service
 @RequiredArgsConstructor
@@ -28,14 +28,14 @@ public class ReviewService {
     private final EventRepository eventRepository;
     private final ParticipationRepository participationRepository;
 
-    // Проверяет, может ли пользователь оставить отзыв на событие
+    
     private boolean canUserReviewEvent(Event event, User user) {
-        // Организатор не может оставлять отзыв
+        
         if (event.getOrganizer().getId().equals(user.getId())) {
             return false;
         }
 
-        // Проверка участия
+        
         boolean isParticipant = participationRepository
                 .findByParticipantIdAndEventId(user.getId(), event.getId())
                 .filter(p -> p.getStatus() == org.itmo.model.enums.ParticipationStatus.CONFIRMED)
@@ -45,14 +45,14 @@ public class ReviewService {
             return false;
         }
 
-        // Проверка времени
+        
         LocalDateTime now = MoscowTimeUtil.getCurrentMoscowTime();
         if (event.getStartTime().isAfter(now)) {
-            // Событие еще не началось
+            
             return false;
         }
 
-        // Если событие активно или завершено, и пользователь участвовал - можно оставить отзыв
+        
         return true;
     }
 
@@ -65,17 +65,17 @@ public class ReviewService {
             throw new SecurityException("You are not allowed to review this event");
         }
 
-        // Найти существующий отзыв пользователя
+        
         Optional<Review> existingReview = reviewRepository.findByEventIdAndUserId(eventId, currentUser.getId());
 
         Review review;
         if (existingReview.isPresent()) {
-            // Обновить существующий отзыв
+            
             review = existingReview.get();
             review.setRating(reviewDto.getRating());
             review.setComment(reviewDto.getComment());
         } else {
-            // Создать новый отзыв
+            
             review = new Review();
             review.setEvent(event);
             review.setUser(currentUser);
@@ -84,7 +84,7 @@ public class ReviewService {
         }
 
         Review savedReview = reviewRepository.save(review);
-        // Пересчитать и обновить средний рейтинг события
+        
         recalculateAverageRating(event);
         return savedReview;
     }

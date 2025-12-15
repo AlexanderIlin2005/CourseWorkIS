@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/controller/PublicProfileController.java
+
 package org.itmo.controller;
 
 import org.itmo.dto.UserDto;
@@ -21,7 +21,7 @@ public class PublicProfileController {
         User user = userService.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         UserDto userDto = new UserDto(user);
-        // Убираем чувствительные данные (если нужно, но email/phone/bio публичны по ТЗ)
+        
         model.addAttribute("user", userDto);
         return "public-profile";
     }

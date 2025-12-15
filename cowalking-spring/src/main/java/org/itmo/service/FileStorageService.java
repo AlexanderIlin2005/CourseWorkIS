@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/service/FileStorageService.java
+
 package org.itmo.service;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +28,7 @@ public class FileStorageService {
             throw new IllegalArgumentException("Cannot store empty file.");
         }
 
-        // Определяем директорию назначения в зависимости от типа
+        
         String destinationPath;
         if ("user".equals(type)) {
             destinationPath = Paths.get(uploadRootPath, userPhotoPath).toString();
@@ -43,7 +43,7 @@ public class FileStorageService {
             Files.createDirectories(uploadPath);
         }
 
-        // Генерируем уникальное имя файла
+        
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
@@ -53,6 +53,6 @@ public class FileStorageService {
         Path filePath = uploadPath.resolve(uniqueFilename);
 
         Files.copy(file.getInputStream(), filePath);
-        return filePath.toString(); // Возвращаем полный путь или относительный URL
+        return filePath.toString(); 
     }
 }

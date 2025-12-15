@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/config/LocationDataInitializer.java
+
 package org.itmo.config;
 
 import org.itmo.model.Location;
@@ -26,14 +26,14 @@ public class LocationDataInitializer implements ApplicationListener<ContextRefre
     }
 
     private void initializeLocations() {
-        // Пример добавления локаций Петербурга
-        if (locationService.findAll().isEmpty()) { // Проверяем, есть ли уже локации
+        
+        if (locationService.findAll().isEmpty()) { 
             logger.info("No locations found. Creating default locations.");
 
             Location location1 = new Location();
             location1.setName("Центральный парк культуры и отдыха (ЦПКиО)");
             location1.setAddress("наб. реки Фонтанки, 121, Санкт-Петербург");
-            location1.setLatitude(59.9343); // Пример координат
+            location1.setLatitude(59.9343); 
             location1.setLongitude(30.3351);
             location1.setDescription("Большой парк с прудами и зеленью в центре города.");
             locationService.save(location1);

@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/controller/EventController.java
+
 package org.itmo.controller;
 
 import org.itmo.dto.EventDto;
@@ -49,7 +49,7 @@ public class EventController {
         return listActiveEvents(model, null, null, null, null);
     }
 
-    // --- ЕДИНСТВЕННЫЙ МЕТОД ДЛЯ /active ---
+    
     @GetMapping("/active")
     public String listActiveEvents(
             Model model,
@@ -64,9 +64,9 @@ public class EventController {
         List<EventDto> eventDtos = activeEvents.stream()
                 .map(event -> {
                     EventDto dto = eventMapper.toEventDto(event);
-                    // --- ДОБАВЛЕНО: Заполнение количества отзывов ---
+                    
                     dto.setReviewCount(eventService.getReviewCountForEvent(event.getId()));
-                    // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+                    
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -79,9 +79,9 @@ public class EventController {
         model.addAttribute("events", eventDtos);
         return "events/active-events";
     }
-    // --- КОНЕЦ ЕДИНСТВЕННОГО МЕТОДА ---
+    
 
-    // Новый метод для завершённых событий
+    
     @GetMapping("/completed")
     public String listCompletedEvents(Model model) {
         List<Event> completedEvents = eventService.findCompletedEvents();
@@ -132,7 +132,7 @@ public class EventController {
         User currentUser = (User) authentication.getPrincipal();
 
         try {
-            // Создаем новое событие
+            
             Event event = new Event();
             event.setTitle(title);
             event.setDescription(description);
@@ -144,12 +144,12 @@ public class EventController {
             event.setStartAddress(startAddress);
             event.setEndAddress(endAddress);
 
-            // --- ДОБАВЛЕНО: Установка координат ---
+            
             event.setStartLatitude(startLatitude);
             event.setStartLongitude(startLongitude);
-            // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+            
 
-            // Обработка загрузки фотографии
+            
             if (photoFile != null && !photoFile.isEmpty()) {
                 try {
                     String photoPath = fileStorageService.storeFile(photoFile, "event");
@@ -159,19 +159,19 @@ public class EventController {
                 }
             }
 
-            // Установка связи с EventType
+            
             EventType eventType = eventTypeRepository.findById(eventTypeId)
                     .orElseThrow(() -> new RuntimeException("Event type not found with id: " + eventTypeId));
             event.setEventType(eventType);
 
-            // Сохранение события
+            
             Event savedEvent = eventService.save(event, currentUser);
             return "redirect:/events/" + savedEvent.getId();
 
         } catch (Exception e) {
             model.addAttribute("error", "Creation failed: " + e.getMessage());
 
-            // Заполняем DTO для отображения данных в форме в случае ошибки
+            
             EventDto errorDto = new EventDto();
             errorDto.setTitle(title);
             errorDto.setDescription(description);
@@ -197,14 +197,14 @@ public class EventController {
         EventDto eventDto = eventMapper.toEventDto(event);
         model.addAttribute("event", eventDto);
 
-        // Загружаем отзывы для события
+        
         List<Review> reviews = reviewService.getReviewsForEvent(id);
         model.addAttribute("reviews", reviews);
 
-        // Загружаем DTO для формы отзыва
+        
         model.addAttribute("reviewDto", new ReviewDto());
 
-        // Добавляем ID текущего пользователя, если он аутентифицирован
+        
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof User) {
             User currentUser = (User) authentication.getPrincipal();
             model.addAttribute("currentUserId", currentUser.getId());
@@ -269,7 +269,7 @@ public class EventController {
         }
 
         try {
-            // Создаем объект Event для обновления
+            
             Event event = new Event();
             event.setId(id);
             event.setTitle(title);
@@ -282,12 +282,12 @@ public class EventController {
             event.setStartAddress(startAddress);
             event.setEndAddress(endAddress);
 
-            // --- ДОБАВЛЕНО: Установка координат ---
+            
             event.setStartLatitude(startLatitude);
             event.setStartLongitude(startLongitude);
-            // --- КОНЕЦ ДОБАВЛЕНИЯ ---
+            
 
-            // Обработка загрузки фотографии
+            
             if (photoFile != null && !photoFile.isEmpty()) {
                 try {
                     String photoPath = fileStorageService.storeFile(photoFile, "event");
@@ -296,11 +296,11 @@ public class EventController {
                     throw new RuntimeException("Failed to store event photo", e);
                 }
             } else {
-                // Сохраняем существующую фотографию, если новая не загружена
+                
                 event.setPhotoUrl(existingEvent.getPhotoUrl());
             }
 
-            // Установка связи с EventType
+            
             EventType eventType = eventTypeRepository.findById(eventTypeId)
                     .orElseThrow(() -> new RuntimeException("Event type not found with id: " + eventTypeId));
             event.setEventType(eventType);
@@ -311,7 +311,7 @@ public class EventController {
         } catch (Exception e) {
             model.addAttribute("error", "Update failed: " + e.getMessage());
 
-            // Заполняем DTO для отображения данных в форме в случае ошибки
+            
             EventDto errorDto = new EventDto();
             errorDto.setId(id);
             errorDto.setTitle(title);
@@ -325,10 +325,10 @@ public class EventController {
             errorDto.setMaxParticipants(maxParticipants);
             errorDto.setPhotoUrl(existingEvent.getPhotoUrl());
 
-            // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ: Заполняем координаты из параметров формы ---
+            
             errorDto.setStartLatitude(startLatitude);
             errorDto.setStartLongitude(startLongitude);
-            // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+            
 
             model.addAttribute("event", errorDto);
             model.addAttribute("eventTypes", eventTypeRepository.findAll());

@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/controller/AdminController.java
+
 package org.itmo.controller;
 
 import org.itmo.model.User;
@@ -19,7 +19,7 @@ public class AdminController {
 
     private final UserService userService;
 
-    // Доступ только для админов
+    
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public String listUsers(Model model) {
@@ -28,7 +28,7 @@ public class AdminController {
         return "admin/users";
     }
 
-    // Доступ только для админов
+    
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/users/{userId}/freeze")
     public String freezeUser(@PathVariable Long userId) {
@@ -36,7 +36,7 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // Доступ только для админов
+    
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/users/{userId}/unfreeze")
     public String unfreezeUser(@PathVariable Long userId) {
@@ -44,7 +44,7 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
-    // Доступ только для админов
+    
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/users/{userId}/role")
     public String changeUserRole(@PathVariable Long userId, @RequestParam UserRole newRole) {

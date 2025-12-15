@@ -1,4 +1,4 @@
-// src/main/java/org/itmo/controller/ReviewController.java
+
 package org.itmo.controller;
 
 import org.itmo.dto.ReviewDto;

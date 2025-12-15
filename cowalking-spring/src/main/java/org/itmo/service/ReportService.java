@@ -37,13 +37,13 @@ public class ReportService {
     public Report createReport(Report report, User reporter) {
         report.setReporter(reporter);
         report.setCreatedAt(LocalDateTime.now());
-        report.setIsResolved(false); // Новый отчет не решен
+        report.setIsResolved(false); 
         return reportRepository.save(report);
     }
 
     @Transactional
     public Report resolveReport(Long reportId, String resolutionNotes, User resolver) {
-        // Проверка прав: только админ может решать отчеты
+        
         if (!resolver.getRole().equals(UserRole.ADMIN)) {
             throw new SecurityException("Only administrators can resolve reports");
         }

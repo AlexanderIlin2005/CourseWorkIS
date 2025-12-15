@@ -16,16 +16,16 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     List<Participation> findByEventId(Long eventId);
     Optional<Participation> findByParticipantIdAndEventId(Long userId, Long eventId);
 
-    // --- НОВЫЙ МЕТОД: Подсчет подтвержденных участников ---
+    
     long countByEventIdAndStatus(Long eventId, ParticipationStatus status);
 
-    // --- ИСПРАВЛЕНО: Используем JPQL с JOIN FETCH вместо @EntityGraph ---
+    
     @Query("SELECT p FROM Participation p JOIN FETCH p.participant JOIN FETCH p.event WHERE p.participant.id = :userId AND p.status = :status")
     List<Participation> findByParticipantIdAndStatus(@Param("userId") Long userId, @Param("status") ParticipationStatus status);
 
     @Query("SELECT p FROM Participation p JOIN FETCH p.participant JOIN FETCH p.event WHERE p.event.organizer.id = :organizerId AND p.status = :status")
     List<Participation> findByEventOrganizerIdAndStatus(@Param("organizerId") Long organizerId, @Param("status") ParticipationStatus status);
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+    
 
 
 }

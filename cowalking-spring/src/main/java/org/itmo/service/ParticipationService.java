@@ -34,25 +34,25 @@ public class ParticipationService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Проверка: не достигнут ли максимум участников (только для подтвержденных)
+        
         long confirmedParticipants = participationRepository.countByEventIdAndStatus(eventId, ParticipationStatus.CONFIRMED);
         if (event.getMaxParticipants() != null && confirmedParticipants >= event.getMaxParticipants()) {
             throw new RuntimeException("Event is full");
         }
 
-        // Проверка: не отправлял ли уже пользователь заявку
+        
         Optional<Participation> existingParticipation = participationRepository
                 .findByParticipantIdAndEventId(user.getId(), eventId);
 
-        // Разрешаем создать новую заявку, если старая была CANCELLED
+        
         if (existingParticipation.isPresent()) {
             Participation existing = existingParticipation.get();
-            // Если заявка активна (PENDING или CONFIRMED), запрещаем новую
+            
             if (existing.getStatus() == ParticipationStatus.PENDING ||
                     existing.getStatus() == ParticipationStatus.CONFIRMED) {
                 throw new RuntimeException("You have already applied to join this event");
             }
-            // Если заявка CANCELLED, удаляем старую и создаем новую
+            
             participationRepository.delete(existing);
         }
 
@@ -71,10 +71,10 @@ public class ParticipationService {
                 .findByParticipantIdAndEventId(user.getId(), eventId)
                 .orElseThrow(() -> new RuntimeException("You are not joined to this event"));
 
-        // Удаляем заявку или отменяем участие
+        
         participationRepository.delete(participation);
 
-        // Если статус был CONFIRMED, уменьшаем currentParticipants
+        
         if (ParticipationStatus.CONFIRMED.equals(participation.getStatus())) {
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
@@ -83,63 +83,63 @@ public class ParticipationService {
         }
     }
 
-    // --- НОВЫЙ МЕТОД: Подтверждение заявки организатором ---
+    
     @Transactional
     public void confirmParticipation(Long participationId, User organizer) {
         Participation participation = participationRepository.findById(participationId)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
 
-        // Проверка: является ли пользователь организатором события
+        
         if (!participation.getEvent().getOrganizer().getId().equals(organizer.getId())) {
             throw new SecurityException("You can only confirm applications for your own events");
         }
 
-        // Проверка: статус заявки должен быть PENDING
+        
         if (!ParticipationStatus.PENDING.equals(participation.getStatus())) {
             throw new IllegalStateException("Application is not pending");
         }
 
-        // Проверка: не достигнут ли максимум участников
+        
         Event event = participation.getEvent();
         long confirmedParticipants = participationRepository.countByEventIdAndStatus(event.getId(), ParticipationStatus.CONFIRMED);
         if (event.getMaxParticipants() != null && confirmedParticipants >= event.getMaxParticipants()) {
             throw new RuntimeException("Event is full, cannot confirm this application");
         }
 
-        // Подтверждаем заявку
+        
         participation.setStatus(ParticipationStatus.CONFIRMED);
         participationRepository.save(participation);
 
-        // Увеличиваем currentParticipants
+        
         event.setCurrentParticipants(event.getCurrentParticipants() + 1);
         eventRepository.save(event);
     }
 
-    // --- НОВЫЙ МЕТОД: Отклонение заявки организатором ---
+    
     @Transactional
     public void rejectParticipation(Long participationId, User organizer) {
         Participation participation = participationRepository.findById(participationId)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
 
-        // Проверка: является ли пользователь организатором события
+        
         if (!participation.getEvent().getOrganizer().getId().equals(organizer.getId())) {
             throw new SecurityException("You can only reject applications for your own events");
         }
 
-        // Проверка: статус заявки должен быть PENDING
+        
         if (!ParticipationStatus.PENDING.equals(participation.getStatus())) {
             throw new IllegalStateException("Application is not pending");
         }
 
-        // Отклоняем заявку
+        
         participation.setStatus(ParticipationStatus.CANCELLED);
         participationRepository.save(participation);
-        // currentParticipants НЕ меняется
+        
     }
 
     public Participation findByParticipantIdAndEventId(Long participantId, Long eventId) {
         return participationRepository.findByParticipantIdAndEventId(participantId, eventId)
-                .orElse(null); // Возвращаем null если не найдено
+                .orElse(null); 
     }
 
 
